@@ -18,13 +18,27 @@ Instead of digging through ugly PDF timetables every day, pick your **branch, di
 - **12h / 24h clock toggle** and **light / dark theme** (auto-detects system theme, with manual override).
 - **Fully responsive** — designed mobile-first, works down to small phone screens, with safe-area support for notches/home indicators.
 - **Terms & conditions popup** — a small disclaimer, since the timetable data is AI-extracted from the official PDF.
+- **Installable as an app** — on Android/desktop Chrome or Edge, a native "Install" prompt lets you add it to your home screen or app list, so it opens full-screen with no browser bars. On iOS, a banner walks you through the manual "Add to Home Screen" steps (Apple doesn't allow the automatic prompt).
 
 ## How it works
 
-- The app is a **single self-contained HTML file** (`timetable.html`) — HTML, CSS, and JavaScript all in one, no build step required.
+- The app's core is a **single self-contained HTML file** (`index.html`, also included here as `timetable.html`) — HTML, CSS, and JavaScript all in one, no build step required.
 - Timetable data is fetched live from a **Supabase** backend (the `TimeTable_VIT` project), which stores data extracted from the official department timetable PDF (Form FF957).
 - Your selected branch, division, batch, clock format, and theme preference are stored in the browser's `localStorage` — nothing is sent to a server beyond the read-only data fetch.
+- A `manifest.json`, a minimal `sw.js` service worker, and a small `icons/` folder make the app installable as a Progressive Web App (PWA).
 
+## Files
+
+| File | Purpose |
+|---|---|
+| `index.html` | The whole app — must be named exactly `index.html` for GitHub Pages to serve it at the site root. |
+| `manifest.json` | App name, icons, and theme colour used for the "Install app" prompt. |
+| `sw.js` | Minimal service worker — required for installability and gives a basic offline fallback for the app shell. |
+| `icons/` | App icons in the sizes required by Android, desktop, and iOS home screens. |
+
+## Running it
+
+No installation needed to *view* it — just open `index.html` in any modern browser. To actually *install* it as an app, all four items above (the HTML file, `manifest.json`, `sw.js`, and the `icons/` folder) need to be deployed together, in the same folder, since the HTML file links to the others by relative path.
 
 ## Disclaimer
 
