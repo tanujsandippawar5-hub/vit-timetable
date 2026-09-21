@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="light dark">
-<title>CSE(SE)-C timetable</title>
+<title>VIT Pune — FY Timetable</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1B2340">
 <link rel="icon" href="icons/icon-32.png" sizes="32x32">
@@ -52,6 +52,8 @@ button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap}
 h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,40px);line-height:.92;margin:0}
 .sub{margin:6px 0 0;color:var(--muted);font-size:12.5px;max-width:44ch}
+.campus{margin:4px 0 0;display:flex;align-items:center;gap:4px;color:var(--muted);font-size:12px;font-weight:700;letter-spacing:.02em}
+.campus svg{flex:none;opacity:.75}
 .clock{text-align:right}
 .clock-time{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,40px);line-height:.92;font-variant-numeric:tabular-nums}
 .clock-date{color:var(--muted);font-size:12.5px;margin-top:4px}
@@ -352,6 +354,7 @@ dialog#terms::backdrop{background:rgba(12,16,32,.55)}
   <header class="top">
     <div>
       <h1 id="h1">Timetable</h1>
+      <p class="campus" id="campusLine">&nbsp;</p>
       <p class="sub" id="subLine">First year, semester 1.</p>
       <button type="button" class="chg" data-act="change"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h10.5M10 3l2.5 2.5L10 8M14 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg>Change class</button>
     </div>
@@ -500,6 +503,16 @@ function humanName(raw){
   return {title:title,name:words.map(titleWord).join(' ')};
 }
 
+/* Display-only renaming: what shows on screen, not what's stored in / fetched from Supabase.
+   Codes not listed here (e.g. CS, IT) are shown exactly as Supabase has them. */
+var BRANCH_DISPLAY={
+  CSAIML:'CSE(AI-ML)', CSAI:'CSE (AI)', AIDS:'AI & DS', CSSE:'CSE(Software)',
+  CSCBI:'CSE (IoT & CSBT)', CSDS:'CSE (Data Science)', CV:'Civil', IC:'Instrumentation', ME:'Mechanical'
+};
+function branchLabel(code){ return BRANCH_DISPLAY[code]||code; }
+var BIBWEWADI=['CS','IT','CSAIML','CSAI'];
+function campusFor(code){ return BIBWEWADI.indexOf(code)>-1?'Bibwewadi Campus':'Kondhwa Campus'; }
+
 /* CLASSES is populated from tt_divisions at boot (metadata only), then each division's
    sessions/faculty are fetched from tt_sessions on demand, the first time it's opened, and cached. */
 var CLASSES={};
@@ -510,7 +523,7 @@ function loadDivisions(){
       rows.forEach(function(r){
         var divKey=r.division.split('-').pop().trim();
         var title=r.division.replace(/^FY\s+/,'');
-        if(!byBranch[r.branch]) byBranch[r.branch]={label:r.branch,divs:{}};
+        if(!byBranch[r.branch]) byBranch[r.branch]={label:branchLabel(r.branch),code:r.branch,divs:{}};
         byBranch[r.branch].divs[divKey]={
           slug:r.slug,title:title,pdf:r.pdf_label||title,version:r.version,academicYear:r.academic_year,
           effFrom:r.effective_from,effTo:r.effective_to,sess:null,fac:null,days:null,loaded:false
@@ -826,8 +839,10 @@ function render(){
   }
   if(sel===null) sel=focus&&focus.offset<=6?focus.offset:0;
 
-  $('#h1').textContent=CUR.title;
-  document.title=CUR.title+' timetable';
+  var headTitle=branchLabel(st.branch)+'-'+st.div;
+  $('#h1').textContent=headTitle;
+  document.title=headTitle+' timetable';
+  $('#campusLine').innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5S13 10.2 13 6.5a5 5 0 10-10 0C3 10.2 8 14.5 8 14.5z"/><circle cx="8" cy="6.5" r="1.8"/></svg><span>'+campusFor(st.branch)+'</span>';
   $('#subLine').textContent='First year, semester 1. Timetable version '+CUR.version+', valid '+fmtDateLong(CUR.effFrom)+' to '+fmtDateLong(CUR.effTo)+'.';
   $('#footTxt').textContent="Built from timetable Form FF957 for First Year "+CUR.pdf+", version "+CUR.version+", effective "+fmtDateLong(CUR.effFrom)+" to "+fmtDateLong(CUR.effTo)+". Class blocks show faculty initials; tap a class for full names from the faculty list on page 2 of the PDF, pulled live from the TimeTable_VIT database. Holidays and notices aren't included, so check announcements before you head out.";
   $('#clockTime').textContent=fmtT(mins(now));
