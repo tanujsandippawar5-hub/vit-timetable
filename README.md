@@ -25,9 +25,6 @@ Instead of digging through ugly PDF timetables every day, pick your **branch, di
 - Timetable data is fetched live from a **Supabase** backend (the `TimeTable_VIT` project), which stores data extracted from the official department timetable PDF (Form FF957).
 - Your selected branch, division, batch, clock format, and theme preference are stored in the browser's `localStorage` — nothing is sent to a server beyond the read-only data fetch.
 
-## Running it
-
-No installation needed. Just open `timetable.html` in any modern browser (desktop or mobile).
 
 ## Disclaimer
 
