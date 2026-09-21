@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>CSE(SE)-C timetable</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  --ground:#ECEEF3; --surface:#FFFFFF; --ink:#1B2340; --muted:#596080; --line:#D6DAE6; --wash:#F3F4F8;
+  --now:#E5383B; --focus:#2F5BD6;
+  --tint:13%; --bar-keep:100%;
+  --display:"Big Shoulders Display","Barlow Condensed","Arial Narrow",sans-serif;
+  --body:"Instrument Sans","Segoe UI",system-ui,-apple-system,"Helvetica Neue",Arial,sans-serif;
+  --hr:60px; --hrw:52px;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F1320; --surface:#181E33; --ink:#EDEFF7; --muted:#A0A8C4; --line:#2B3352; --wash:#1F2640;
+    --tint:30%; --bar-keep:62%; --focus:#8FA8FF; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F1320; --surface:#181E33; --ink:#EDEFF7; --muted:#A0A8C4; --line:#2B3352; --wash:#1F2640;
+  --tint:30%; --bar-keep:62%; --focus:#8FA8FF; color-scheme:dark;
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--ground);color:var(--ink);font-family:var(--body);font-size:14px;line-height:1.4;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit}
+button:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+.app{max-width:960px;margin:0 auto;padding:12px 12px 32px}
+@media (min-width:720px){.app{padding:22px 22px 44px}}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px 20px;flex-wrap:wrap}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,40px);line-height:.92;margin:0}
+.sub{margin:6px 0 0;color:var(--muted);font-size:12.5px;max-width:44ch}
+.clock{text-align:right}
+.clock-time{font-family:var(--display);font-weight:800;font-size:clamp(28px,6vw,40px);line-height:.92;font-variant-numeric:tabular-nums}
+.clock-date{color:var(--muted);font-size:12.5px;margin-top:4px}
+
+/* controls */
+.controls{display:flex;flex-wrap:wrap;gap:8px 18px;margin:12px 0 12px}
+.ctl{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.seg{display:inline-flex;gap:2px;padding:3px;background:var(--wash);border:1px solid var(--line);border-radius:12px}
+.seg button{white-space:nowrap;border:0;background:transparent;border-radius:9px;padding:4px 12px;min-height:34px;min-width:44px;font-weight:600;font-size:13px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--surface)}
+
+/* layout */
+.layout{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);align-items:start}
+@media (min-width:960px){
+  .layout{grid-template-columns:minmax(0,5fr) minmax(0,7fr)}
+  #hero{position:sticky;top:16px}
+}
+
+/* hero: the next class, coloured by subject, with the room as a door plate */
+.hero{--c:#5B6478;background:var(--c);color:#fff;border-radius:18px;padding:16px 16px 14px;transition:background-color .5s ease}
+.status{display:flex;align-items:center;gap:8px;margin:0;font-size:13px;font-weight:600;opacity:.95}
+.dot{width:9px;height:9px;border-radius:50%;background:#fff;flex:none;animation:pulse 2.2s ease-out infinite}
+.big{font-family:var(--display);font-weight:800;font-size:clamp(38px,10vw,56px);line-height:.9;margin:8px 0 12px}
+.hero-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:end}
+.subject{margin:0;font-size:clamp(17px,4.2vw,21px);font-weight:700;line-height:1.15}
+.subject.idle{font-weight:600;font-size:16px}
+.meta{display:flex;flex-wrap:wrap;gap:2px 12px;margin:6px 0 0;font-size:13px}
+.meta .code{opacity:.75}
+.plate{background:#fff;color:#1B2340;border-radius:9px;padding:7px 10px 5px;text-align:center;min-width:72px;
+  box-shadow:inset 0 0 0 2px #fff,inset 0 0 0 4px #1B2340}
+.plate-l{display:block;font-size:11px;font-weight:600;color:#596080;line-height:1}
+.plate-n{display:block;font-family:var(--display);font-weight:800;font-size:clamp(30px,8vw,42px);line-height:.95;letter-spacing:.02em}
+.prog{height:5px;border-radius:99px;background:rgba(255,255,255,.3);margin-top:12px;overflow:hidden}
+.prog>i{display:block;height:100%;width:var(--p);background:#fff;border-radius:inherit;transition:width .6s ease}
+.hero-btn{margin:12px 0 0;min-height:40px;padding:8px 14px;border:1.5px solid rgba(255,255,255,.8);border-radius:10px;background:transparent;color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+.hero-btn:hover{background:rgba(255,255,255,.16)}
+.hero-btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.then{margin:12px 0 0;padding-top:9px;border-top:1px solid rgba(255,255,255,.35);font-size:13px}
+
+/* day panel */
+.panel,.weekp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px}
+.days{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(66px,1fr);gap:4px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity;padding:2px 2px 6px;scrollbar-width:thin}
+.tab{scroll-snap-align:center;display:flex;flex-direction:column;align-items:center;gap:0;min-height:56px;padding:6px 4px;text-align:center;
+  border:1px solid var(--line);border-radius:12px;background:transparent;cursor:pointer}
+.tab .t1{display:flex;align-items:center;gap:5px;font-size:12px;font-weight:600;white-space:nowrap}
+.tab .t2,.tab .t3{font-size:11px;color:var(--muted)}
+.tab.free:not([aria-pressed="true"]) .t1{color:var(--muted)}
+.tab[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.tab[aria-pressed="true"] .t2,.tab[aria-pressed="true"] .t3{color:inherit;opacity:.8}
+.tdot{width:6px;height:6px;border-radius:50%;background:var(--now);flex:none}
+.day-head{display:flex;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:10px 2px 0}
+h2{font-family:var(--display);font-weight:800;font-size:clamp(21px,4.4vw,26px);line-height:1;margin:0}
+.day-sum{margin:0;color:var(--muted);font-size:12.5px}
+
+/* timeline */
+.tl{position:relative;display:grid;grid-template-columns:42px minmax(0,1fr);margin:16px 0 4px}
+.tl-gut{position:relative;height:calc(var(--hr)*var(--rows))}
+.tl-gut span,.wk-gut span{position:absolute;right:8px;transform:translateY(-50%);font-size:11px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.tl-track{position:relative;height:calc(var(--hr)*var(--rows));border-bottom:1px solid var(--line);
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0,var(--line) 1px,transparent 1px,transparent var(--hr))}
+.gap{position:absolute;left:8px;right:0;display:flex;align-items:center;justify-content:center;font-size:11.5px;color:var(--muted)}
+.blks{list-style:none;margin:0;padding:0;position:absolute;inset:0}
+.blk{position:absolute;left:8px;right:0;overflow:hidden;border-radius:7px;
+  background:var(--wash);background:color-mix(in srgb,var(--c) var(--tint),var(--surface));
+  border-left:4px solid var(--c);border-left-color:color-mix(in srgb,var(--c) var(--bar-keep),#fff)}
+.blk-btn{display:flex;flex-direction:column;gap:2px;align-items:stretch;width:100%;height:100%;margin:0;padding:6px 10px;border:0;background:transparent;text-align:left;color:inherit;font:inherit;cursor:pointer;border-radius:inherit;overflow:hidden}
+.blk-btn:hover{background:rgba(127,127,127,.10)}
+.blk-btn:focus-visible{outline:3px solid var(--focus);outline-offset:-3px}
+.blk-name{font-weight:600;font-size:13.5px;line-height:1.2}
+.blk-meta{display:flex;flex-wrap:wrap;align-items:center;gap:1px 8px;font-size:11.5px;color:var(--muted)}
+.blk-meta b{font-weight:700;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:0 5px}
+.blk[data-state="past"]{opacity:.5}
+.blk[data-state="live"]{outline:2px solid var(--ink);outline-offset:1px}
+.blk[data-state="next"]{outline:2px dashed var(--muted);outline-offset:1px}
+.has-chip .blk-name{padding-right:54px}
+.chip{pointer-events:none;position:absolute;top:6px;right:6px;display:inline-flex;align-items:center;gap:5px;padding:1px 8px;border-radius:99px;font-size:10.5px;font-weight:700}
+.chip.live{background:var(--ink);color:var(--surface)}
+.chip.nxt{background:var(--surface);border:1px solid var(--muted);color:var(--ink)}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--now);animation:pulse 2.2s ease-out infinite}
+.now{position:absolute;left:0;right:0;height:0;z-index:4;pointer-events:none}
+.now::before{content:"";position:absolute;left:36px;right:0;top:-1px;height:2px;background:var(--now)}
+.now::after{content:"";position:absolute;left:31px;top:-4px;width:8px;height:8px;border-radius:50%;background:var(--now)}
+.now-t{position:absolute;left:0;top:0;transform:translateY(-50%);padding:1px 4px;border-radius:5px;background:var(--now);color:#fff;font-size:10px;font-weight:700;font-variant-numeric:tabular-nums}
+
+/* empty day */
+.empty{padding:20px 4px 12px;max-width:46ch}
+.empty-title{font-family:var(--display);font-weight:800;font-size:26px;line-height:1;margin:0}
+.empty-body{margin:8px 0 0;color:var(--muted)}
+.btn{margin-top:12px;padding:7px 16px;min-height:38px;border:1px solid var(--ink);border-radius:10px;background:var(--ink);color:var(--surface);font-weight:600;cursor:pointer}
+
+/* week */
+.weekp{margin-top:12px}
+.weekp-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:2px 2px 8px}
+.weekp-head p{margin:0;color:var(--muted);font-size:12.5px}
+.wk-scroll{overflow-x:auto}
+.wk{position:relative;display:grid;grid-template-columns:46px repeat(var(--nc,5),minmax(0,1fr));min-width:0}
+.wk-h{display:flex;flex-direction:column;padding:4px 6px 8px;font-size:12.5px;font-weight:600;border-bottom:1px solid var(--line)}
+.wk-h small{font-size:11px;font-weight:400;color:var(--muted)}
+.wk-h .tdot{display:inline-block;margin-right:6px;vertical-align:middle}
+.wk-gut{position:relative;background:var(--surface);height:calc(var(--hrw)*var(--rows))}
+.wk-col{position:relative;height:calc(var(--hrw)*var(--rows));border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+  background-image:repeating-linear-gradient(to bottom,var(--line) 0,var(--line) 1px,transparent 1px,transparent var(--hrw))}
+.wk-col.today{background-color:var(--wash)}
+.wk-now{grid-column:1/-1;grid-row:2;position:relative;pointer-events:none}
+.blk.sm{left:2px;right:2px;border-left-width:3px;border-radius:5px}
+.sm .blk-btn{padding:4px 6px;gap:1px}
+.sm .blk-name{font-size:11.5px;line-height:1.15}
+.sm .blk-meta{font-size:10.5px;gap:1px 5px}
+.sm .blk-meta b{padding:0 3px;border-radius:4px}
+.sm .chip{display:none}
+.has-chip.sm .blk-name{padding-right:0}
+.week-note{margin:8px 2px 0;color:var(--muted);font-size:12.5px}
+
+.foot{margin-top:18px;color:var(--muted);font-size:12px;max-width:70ch}
+.foot p{margin:0}
+
+/* phones: compact chrome, week grid fits the screen (no sideways scroll) */
+@media (max-width:600px){
+  :root{--hr:56px;--hrw:56px}
+  .top{align-items:center}
+  .sub{display:none}
+  .clock-date{font-size:12px}
+  .controls{flex-wrap:nowrap;gap:8px;justify-content:space-between}
+  .ctl{gap:6px;font-size:12px;min-width:0}
+  .ctl>span{white-space:nowrap}
+  .ctl-l{display:none}
+  .seg button{padding:4px 9px;min-height:38px;min-width:38px;font-size:12.5px}
+  .tab{min-height:54px}
+  .wk-gut span,.tl-gut span{right:6px;font-size:10px}
+  .wk-h{padding:4px 2px 6px;font-size:11.5px;align-items:center;text-align:center}
+  .wk-h small{font-size:10px}
+  .wk-h .tdot{display:none}
+  .wk-h[aria-current="date"]{color:var(--now)}
+  .blk.sm{left:1px;right:1px;border-left-width:3px}
+  .sm .blk-btn{padding:3px 3px 3px 5px}
+  .sm .blk-name{font-size:10.5px;line-height:1.12;overflow-wrap:anywhere}
+  .sm .blk-meta{font-size:9.5px;gap:0 4px}
+  .sm .blk-meta span:not(:first-child){display:none}
+  .sm .blk-meta b{padding:0 2px;font-size:9.5px}
+  .sm .chip{display:none}
+  .has-chip.sm .blk-name{padding-right:0}
+  .now::before{left:34px}.now::after{left:29px}
+  .tl{grid-template-columns:38px minmax(0,1fr)}
+  .weekp,.panel{padding:8px}
+}
+@media (max-width:600px){.wk{grid-template-columns:38px repeat(var(--nc,5),minmax(0,1fr))}}
+@media (max-width:360px){.sm .blk-name{font-size:9.5px}.wk{grid-template-columns:38px repeat(var(--nc,5),minmax(0,1fr))}.wk-gut span,.tl-gut span{right:6px}}
+
+[hidden]{display:none!important}
+
+/* change-class button (header) */
+.chg{margin-top:8px;display:inline-flex;align-items:center;gap:7px;min-height:36px;padding:4px 12px;border:1px solid var(--line);border-radius:10px;background:var(--wash);font-weight:600;font-size:12.5px;cursor:pointer}
+.chg:hover{background:var(--surface)}
+.chg svg{flex:none}
+
+/* class picker (first visit, and when switching) */
+.picker{max-width:480px;margin:0 auto;padding-top:clamp(4px,4vh,36px)}
+.pk-card{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:20px 16px 16px}
+.pk-title{font-size:clamp(28px,7vw,36px);line-height:.95}
+.pk-title:focus{outline:none}
+.pk-sub{margin:8px 0 0;color:var(--muted);font-size:13px}
+.pk-g{margin-top:18px}
+.pk-l{margin:0 0 8px;font-size:12.5px;font-weight:700;color:var(--muted)}
+.pk-opts{display:flex;flex-wrap:wrap;gap:8px}
+.opt{min-height:48px;min-width:76px;padding:8px 18px;border:1.5px solid var(--line);border-radius:12px;background:var(--wash);font-weight:700;font-size:15px;cursor:pointer}
+.opt:hover{border-color:var(--muted)}
+.opt[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
+.pk-hint{margin:0;min-height:48px;display:flex;align-items:center;color:var(--muted);font-size:13px}
+.pk-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.pk-actions .btn{margin:0;flex:1 1 200px;min-height:48px;padding:8px 20px;font-size:15px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn2{min-height:48px;padding:8px 18px;border:1px solid var(--line);border-radius:10px;background:transparent;font-weight:600;font-size:15px;cursor:pointer}
+.btn2:hover{background:var(--wash)}
+.btn:focus-visible,.btn2:focus-visible,.opt:focus-visible,.chg:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.pk-org{margin:0;color:var(--muted);font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.pk-story{margin:12px 0 0;padding:12px 14px;background:var(--wash);border:1px solid var(--line);border-radius:12px;color:var(--ink);font-size:13.5px;line-height:1.5}
+.pk-consent{margin:12px 0 0;color:var(--muted);font-size:11.5px;line-height:1.4}
+.pk-consent button{background:none;border:0;padding:0;margin:0;font:inherit;color:inherit;text-decoration:underline;text-underline-offset:2px;cursor:pointer}
+.pk-consent button:hover{color:var(--ink)}
+.pk-consent button:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:3px}
+
+/* six-day weeks (Saturday classes) on phones */
+@media (max-width:600px){
+  .wk.six .wk-h{font-size:10.5px}
+  .wk.six .blk.sm{left:1px;right:1px;border-left-width:2px}
+  .wk.six .sm .blk-btn{padding:3px 1px 3px 3px}
+  .wk.six .sm .blk-name{font-size:9px}
+  .wk.six .sm .blk-meta,.wk.six .sm .blk-meta b{font-size:9px}
+}
+
+/* ---- detail sheet ---- */
+html.lock{overflow:hidden}
+dialog#sheet{padding:0;border:0;margin:auto;background:var(--surface);color:var(--ink);width:min(520px,calc(100vw - 24px));max-width:none;max-height:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(8,12,30,.4)}
+dialog#sheet[open]{animation:sheetIn .2s ease-out}
+dialog#sheet::backdrop{background:rgba(12,16,32,.55)}
+.sheet{display:flex;flex-direction:column;max-height:86vh;max-height:86dvh}
+.sh-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:14px 10px 14px 16px;background:var(--c,#5B6478);color:#fff}
+.sh-title{font-family:var(--display);font-weight:800;font-size:clamp(24px,6vw,30px);line-height:1;margin:2px 0 0}
+.sh-sub{margin:6px 0 0;font-size:13px;opacity:.92}
+.sh-status{display:inline-block;margin:8px 0 0;padding:2px 10px;border-radius:99px;background:rgba(255,255,255,.22);font-size:12.5px;font-weight:600}
+.sh-x{flex:none;width:44px;height:44px;display:grid;place-items:center;border:0;border-radius:12px;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
+.sh-x:hover{background:rgba(255,255,255,.3)}
+.sh-x:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.sh-body{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:2px 16px 16px}
+.sec{padding:14px 0;border-top:1px solid var(--line)}
+.sec:first-child{border-top:0}
+.sh-h{margin:0 0 8px;font-size:14px;font-weight:700}
+.sh-h small{font-weight:400;font-size:12.5px;color:var(--muted)}
+.sh-note{margin:0;font-size:13px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto minmax(0,1fr);gap:7px 16px;margin:0;font-size:14px}
+.kv dt{color:var(--muted)}
+.kv dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.ob-list,.fac-list,.srows{list-style:none;margin:0;padding:0}
+.ob-list{display:grid;gap:6px}
+.ob{display:grid;grid-template-columns:32px minmax(0,1fr);gap:10px;align-items:start;padding:8px 10px;border-radius:10px;background:var(--wash);border-left:4px solid var(--c,var(--line))}
+.ob.free{border-left-color:var(--line);color:var(--muted)}
+.ob-b{font-weight:800;font-size:14px;color:var(--ink)}
+.ob-n{display:block;font-weight:600;font-size:13.5px;line-height:1.25}
+.sheet .blk-meta{font-size:12.5px;margin-top:2px}
+.fac-list{display:grid;gap:12px}
+.fac{display:grid;grid-template-columns:52px minmax(0,1fr);gap:1px 12px;align-items:center;padding:2px 0 2px 10px;border-left:3px solid transparent}
+.fac.cur{border-left-color:var(--c)}
+.fac-i{grid-row:1/3;font-weight:800;font-size:16px}
+.fac-n{font-weight:600;font-size:14px;line-height:1.25;overflow-wrap:anywhere}
+.fac-r{font-size:12.5px;color:var(--muted)}
+.grp+.grp{margin-top:12px}
+.grp-h{margin:0 0 4px;font-size:13px;font-weight:700}
+.tag{margin-left:6px;padding:1px 8px;border-radius:99px;background:var(--ink);color:var(--surface);font-size:11px;font-weight:600;vertical-align:1px}
+.srow{display:grid;grid-template-columns:36px minmax(0,1fr);gap:8px;padding:6px 8px;border-radius:8px;font-size:13px}
+.srow.here{background:color-mix(in srgb,var(--c) 14%,var(--surface))}
+.srow.here .stm{font-weight:700}
+.sd{color:var(--muted);font-weight:600}
+.stm{display:block;font-variant-numeric:tabular-nums}
+.more{margin-top:12px;border-top:1px dashed var(--line);padding-top:4px}
+.more>summary{min-height:44px;display:flex;align-items:center;font-weight:600;font-size:14px;cursor:pointer}
+.more>summary:focus-visible{outline:3px solid var(--focus);outline-offset:2px;border-radius:6px}
+@keyframes sheetIn{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@media (max-width:600px){
+  dialog#sheet{width:100%;margin:auto 0 0;border-radius:18px 18px 0 0}
+  dialog#sheet[open]{animation-name:sheetUp}
+  .sheet{max-height:90vh;max-height:90dvh}
+  .sh-body{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+}
+@keyframes sheetUp{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+@media (prefers-reduced-motion:reduce){dialog#sheet[open]{animation:none}}
+
+/* ---- terms dialog ---- */
+dialog#terms{padding:0;border:0;margin:auto;background:var(--surface);color:var(--ink);width:min(440px,calc(100vw - 24px));max-width:none;max-height:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(8,12,30,.4)}
+dialog#terms[open]{animation:sheetIn .2s ease-out}
+dialog#terms::backdrop{background:rgba(12,16,32,.55)}
+.terms{display:flex;flex-direction:column;max-height:82vh;max-height:82dvh}
+.terms-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;padding:16px 10px 12px 18px}
+.terms-head h3{font-family:var(--display);font-weight:800;font-size:clamp(20px,5vw,24px);line-height:1;margin:0}
+.terms-x{flex:none;width:40px;height:40px;display:grid;place-items:center;border:0;border-radius:11px;background:var(--wash);color:var(--ink);cursor:pointer}
+.terms-x:hover{background:var(--line)}
+.terms-x:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.terms-body{overflow-y:auto;overscroll-behavior:contain;min-height:0;padding:0 18px 18px}
+.terms-body p{margin:0 0 10px;color:var(--muted);font-size:13.5px;line-height:1.55}
+.terms-body p:last-child{margin-bottom:0}
+@media (max-width:600px){
+  dialog#terms{width:100%;margin:auto 0 0;border-radius:18px 18px 0 0}
+  dialog#terms[open]{animation-name:sheetUp}
+  .terms{max-height:86vh;max-height:86dvh}
+  .terms-body{padding-bottom:calc(18px + env(safe-area-inset-bottom,0px))}
+}
+@media (prefers-reduced-motion:reduce){dialog#terms[open]{animation:none}}
+
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,56,59,.55)}70%,100%{box-shadow:0 0 0 7px rgba(229,56,59,0)}}
+.dot{animation-name:pulseW}
+@keyframes pulseW{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}70%,100%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}
+@media (prefers-reduced-motion:reduce){
+  .dot,.ldot{animation:none}
+  .hero,.prog>i{transition:none}
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div id="view">
+  <header class="top">
+    <div>
+      <h1 id="h1">Timetable</h1>
+      <p class="sub" id="subLine">First year, semester 1.</p>
+      <button type="button" class="chg" data-act="change"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h10.5M10 3l2.5 2.5L10 8M14 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg>Change class</button>
+    </div>
+    <div class="clock">
+      <div class="clock-time" id="clockTime">--:--</div>
+      <div class="clock-date" id="clockDate">&nbsp;</div>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="ctl"><span id="lblB">Lab batch</span>
+      <div class="seg" role="group" aria-labelledby="lblB">
+        <button type="button" data-act="batch" data-v="B1" aria-pressed="false">B1</button>
+        <button type="button" data-act="batch" data-v="B2" aria-pressed="true">B2</button>
+        <button type="button" data-act="batch" data-v="B3" aria-pressed="false">B3</button>
+      </div>
+    </div>
+    <div class="ctl"><span id="lblF" class="ctl-l">Clock</span>
+      <div class="seg" role="group" aria-labelledby="lblF">
+        <button type="button" data-act="fmt" data-v="12" aria-pressed="true">12 h</button>
+        <button type="button" data-act="fmt" data-v="24" aria-pressed="false">24 h</button>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="layout">
+      <section id="hero" class="hero" aria-label="Current or next class"></section>
+      <section id="panel" class="panel" aria-label="Day schedule"></section>
+    </div>
+    <section id="week" class="weekp" aria-label="Weekly timetable"></section>
+  </main>
+
+  <footer class="foot">
+    <p id="footTxt"></p>
+  </footer>
+  </div>
+
+  <section id="picker" class="picker" hidden aria-labelledby="pkTitle">
+    <div class="pk-card">
+      <p class="pk-org">Vishwakarma Institute of Technology, Pune</p>
+      <h2 id="pkTitle" class="pk-title" tabindex="-1">Find your timetable</h2>
+      <p class="pk-sub">For FY Freshers &middot; Academic Year 2026&ndash;27. Pick your class once — it is saved on this device, so next time your schedule opens straight away.</p>
+      <p class="pk-story">I knew the struggle of scrolling through ugly PDFs just to find our timetable, so I built this instead. Pick your class below and see your schedule in a clean, easy-to-read format.</p>
+      <p class="pk-hint" id="pkStatus" role="status" aria-live="polite" hidden></p>
+      <div id="pkForm">
+        <div class="pk-g" role="group" aria-labelledby="pkLB"><p class="pk-l" id="pkLB">Branch</p><div class="pk-opts" id="pkBranch"></div></div>
+        <div class="pk-g" role="group" aria-labelledby="pkLD"><p class="pk-l" id="pkLD">Division</p><div class="pk-opts" id="pkDiv"></div></div>
+        <div class="pk-g" role="group" aria-labelledby="pkLT"><p class="pk-l" id="pkLT">Lab batch</p><div class="pk-opts" id="pkBatch"></div></div>
+        <div class="pk-actions">
+          <button type="button" class="btn" id="pkGo" data-act="pk-go" disabled>Show my timetable</button>
+          <button type="button" class="btn2" id="pkCancel" data-act="pk-cancel" hidden>Cancel</button>
+        </div>
+        <p class="pk-consent">By continuing you agree with our <button type="button" data-act="terms-open">terms and conditions</button>.</p>
+      </div>
+    </div>
+  </section>
+  <dialog id="sheet" aria-labelledby="shTitle"><div id="sheetBody" class="sheet"></div></dialog>
+  <dialog id="terms" aria-labelledby="termsTitle">
+    <div class="terms">
+      <div class="terms-head">
+        <h3 id="termsTitle">Terms &amp; conditions</h3>
+        <button type="button" class="terms-x" data-act="terms-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+      </div>
+      <div class="terms-body">
+        <p>This timetable data is extracted with the help of AI from the official department schedules. While every effort has been made to keep it accurate, errors — wrong rooms, times, or faculty — can happen.</p>
+        <p>I won't be responsible for any issues, missed classes, or clashes caused by inaccuracies in this timetable. Please treat it as a convenient reference and cross-check with the official college timetable for anything important.</p>
+      </div>
+    </div>
+  </dialog>
+  <noscript><p>This timetable needs JavaScript to show your live schedule.</p></noscript>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ---------- Timetable data (live, from the TimeTable_VIT Supabase project) ---------- */
+var DAYS=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+var MONS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var START=null, END=null;   // set per class from tt_divisions.effective_from / effective_to
+var inRange=function(d){return START&&END&&d>=START&&d<=END};
+
+/* Supabase project (public, read-only: RLS only grants SELECT on tt_divisions / tt_sessions) */
+var SUPA_URL='https://fqfzygubyjqkimsphmdn.supabase.co';
+var SUPA_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZxZnp5Z3VieWpxa2ltc3BobWRuIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk4NzQwMDYsImV4cCI6MjEwNTQ1MDAwNn0.k0T2HEH8cJlrQvxHWU4lcImLgtcXKGTAaowKyNDg1gI';
+function fetchSupa(path){
+  return fetch(SUPA_URL+'/rest/v1/'+path,{headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}})
+    .then(function(res){ if(!res.ok) throw new Error('Supabase request failed ('+res.status+')'); return res.json(); });
+}
+function toMin(t){ var p=String(t).split(':'); return (+p[0])*60+(+p[1]); }
+function parseISODate(s){ var p=String(s).split('-'); return new Date(+p[0],+p[1]-1,+p[2]); }
+function fmtDateLong(s){ var d=parseISODate(s); return d.getDate()+' '+MONS[d.getMonth()]+' '+d.getFullYear(); }
+
+/* Subjects: a curated palette/short-label for the codes seen so far, with a sensible fallback
+   (deterministic colour + truncated short label) for any new subject code that shows up later. */
+var SUBJ_META={
+  ES26101:{short:'Lin. Algebra',   color:'#2F5BD6'},
+  ES26103:{short:'Logic & Apt.',   color:'#7C4DCB'},
+  ES26104:{short:'Programming',    color:'#0E7C69'},
+  ES26105:{short:'Basics of Engg.',color:'#B84E0F'},
+  ES26106:{short:'Human Values',   color:'#8F6B00'},
+  ES26107:{short:'Indian Know.',   color:'#3F7D1E'},
+  ES26108A:{short:'English',       color:'#B8357C'},
+  ES26109:{short:'Activity',       color:'#5B6478'},
+  ES26201:{short:'Calculus',       color:'#2F5BD6'},
+  ES26205:{short:'Robotics',       color:'#B84E0F'},
+  ES26206:{short:'Env. Studies',   color:'#3F7D1E'},
+  ES26207:{short:'Design Thinking',color:'#8F6B00'}
+};
+var PALETTE=['#2F5BD6','#7C4DCB','#0E7C69','#B84E0F','#8F6B00','#3F7D1E','#B8357C','#5B6478','#1E88A8','#C2410C','#6D28D9','#0D9488'];
+function paletteColor(code){ var h=0; for(var i=0;i<code.length;i++) h=(h*31+code.charCodeAt(i))>>>0; return PALETTE[h%PALETTE.length]; }
+function shortName(name){
+  if(name.length<=16) return name;
+  return name.split(' ').map(function(w){return w.length>4?w.slice(0,4)+'.':w}).join(' ').slice(0,20);
+}
+var SUBJ={};   // cache, keyed by subject_code, filled in as sessions are loaded
+function getSubj(code,name){
+  if(!SUBJ[code]){
+    var meta=SUBJ_META[code]||{};
+    SUBJ[code]={code:code,name:name,short:meta.short||shortName(name),color:meta.color||paletteColor(code)};
+  }
+  return SUBJ[code];
+}
+
+/* Faculty: tt_sessions stores the printed name in caps (e.g. "DR. RAJESH JAGDISH DHAKE");
+   split off a leading honorific and title-case the rest for display. */
+function titleWord(w){ return w?w.charAt(0).toUpperCase()+w.slice(1).toLowerCase():w; }
+function humanName(raw){
+  var words=String(raw).trim().split(/\s+/), title='';
+  var hon=words[0].replace(/\.$/,'').toUpperCase();
+  if(['DR','MR','MRS','MS','MISS'].indexOf(hon)>=0){ title=titleWord(hon)+'.'; words=words.slice(1); }
+  return {title:title,name:words.map(titleWord).join(' ')};
+}
+
+/* CLASSES is populated from tt_divisions at boot (metadata only), then each division's
+   sessions/faculty are fetched from tt_sessions on demand, the first time it's opened, and cached. */
+var CLASSES={};
+function loadDivisions(){
+  return fetchSupa('tt_divisions?select=slug,branch,division,pdf_label,version,academic_year,effective_from,effective_to&order=branch.asc,division.asc')
+    .then(function(rows){
+      var byBranch={};
+      rows.forEach(function(r){
+        var divKey=r.division.split('-').pop().trim();
+        var title=r.division.replace(/^FY\s+/,'');
+        if(!byBranch[r.branch]) byBranch[r.branch]={label:r.branch,divs:{}};
+        byBranch[r.branch].divs[divKey]={
+          slug:r.slug,title:title,pdf:r.pdf_label||title,version:r.version,academicYear:r.academic_year,
+          effFrom:r.effective_from,effTo:r.effective_to,sess:null,fac:null,days:null,loaded:false
+        };
+      });
+      CLASSES=byBranch;
+    });
+}
+function loadDivisionData(meta){
+  if(meta.loaded) return Promise.resolve(meta);
+  return fetchSupa('tt_sessions?division=eq.'+encodeURIComponent(meta.slug)+
+      '&select=weekday,start_time,end_time,subject_code,subject_name,session_type,batch,room,faculty_initials,faculty_name,faculty_id'+
+      '&order=weekday.asc,start_time.asc')
+    .then(function(rows){
+      var sess=[],fac={},daySet={};
+      rows.forEach(function(r,i){
+        getSubj(r.subject_code,r.subject_name);
+        sess.push({id:i,d:r.weekday,s:toMin(r.start_time),e:toMin(r.end_time),sub:r.subject_code,
+          type:r.session_type,b:r.batch||undefined,fac:r.faculty_initials,room:r.room});
+        daySet[r.weekday]=true;
+        if(r.faculty_name && !fac[r.faculty_initials]){
+          var hn=humanName(r.faculty_name);
+          fac[r.faculty_initials]={name:hn.name,id:r.faculty_id||'',title:hn.title};
+        }
+      });
+      meta.sess=sess;meta.fac=fac;
+      meta.days=Object.keys(daySet).map(Number).sort(function(a,b){return a-b});
+      if(!meta.days.length) meta.days=[1,2,3,4,5,6];
+      meta.loaded=true;
+      return meta;
+    });
+}
+
+/* ---------- State ---------- */
+var store={
+  get:function(k,d){try{return localStorage.getItem(k)||d}catch(e){return d}},
+  set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+};
+var st={batch:store.get('tt-batch','B2'),fmt:store.get('tt-fmt','12'),dayMs:null,branch:'',div:''};
+var SESS=[],FAC={},WEEK=[1,2,3,4,5],CUR=null;   // set by setClass()
+if(['B1','B2','B3'].indexOf(st.batch)<0) st.batch='B2';
+if(['12','24'].indexOf(st.fmt)<0) st.fmt='12';
+var centerTab=true;
+
+// ?at=2026-09-21T13:50 previews the dashboard at a chosen moment (handy for checking)
+var skew=0;
+try{var at=new URLSearchParams(location.search).get('at');if(at){var tv=new Date(at).getTime();if(!isNaN(tv))skew=tv-Date.now();}}catch(e){}
+var minuteKey=function(){return Math.floor((Date.now()+skew)/60000)};
+var nowFloor=function(){return new Date(minuteKey()*60000)};
+
+/* ---------- Helpers ---------- */
+var $=function(s){return document.querySelector(s)};
+var pad=function(n){return (n<10?'0':'')+n};
+var dayStart=function(d,off){return new Date(d.getFullYear(),d.getMonth(),d.getDate()+(off||0))};
+var sameDay=function(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()===b.getMonth()&&a.getDate()===b.getDate()};
+var mins=function(d){return d.getHours()*60+d.getMinutes()};
+var shortDate=function(d){return d.getDate()+' '+MONS[d.getMonth()].slice(0,3)};
+var longDate=function(d){return DAYS[d.getDay()]+', '+d.getDate()+' '+MONS[d.getMonth()]};
+
+function fmtT(m){
+  var h=Math.floor(m/60),mm=m%60;
+  if(st.fmt==='24') return pad(h)+':'+pad(mm);
+  return ((h+11)%12+1)+':'+pad(mm)+' '+(h<12?'am':'pm');
+}
+function fmtRange(s,e){
+  if(st.fmt==='24') return fmtT(s)+'\u2013'+fmtT(e);
+  var a=fmtT(s);
+  if((s<720)===(e<720)) a=a.replace(/ [ap]m$/,'');
+  return a+'\u2013'+fmtT(e);
+}
+function fmtH(h){return st.fmt==='24'?pad(h)+':00':((h+11)%12+1)+' '+(h<12?'am':'pm')}
+function dur(ms){
+  var m=Math.round(ms/60000),h=Math.floor(m/60),r=m%60;
+  return h?(r?h+' h '+r+' min':h+' h'):m+' min';
+}
+function forDay(dow,b){
+  return SESS.filter(function(x){return x.d===dow&&(!x.b||x.b===b)}).sort(function(a,c){return a.s-c.s});
+}
+function typeLine(x){return x.b?x.type+', batch '+x.b:x.type}
+
+// switch the app to one class (branch + division); resolves false when it doesn't exist or can't be loaded
+function setClass(b,d){
+  var c=CLASSES[b]&&CLASSES[b].divs[d];
+  if(!c) return Promise.resolve(false);
+  return loadDivisionData(c).then(function(){
+    st.branch=b;st.div=d;CUR=c;SESS=c.sess;FAC=c.fac;WEEK=c.days;
+    START=parseISODate(c.effFrom);END=parseISODate(c.effTo);
+    st.dayMs=null;centerTab=true;
+    return true;
+  }).catch(function(e){ console.error(e); return false; });
+}
+
+// every class in the next `days` days, in order
+function occurrences(now,days){
+  var out=[];
+  for(var i=0;i<days;i++){
+    var d=dayStart(now,i);
+    if(!inRange(d)) continue;
+    forDay(d.getDay(),st.batch).forEach(function(s){
+      var o=Object.assign({},s);
+      o.date=d;o.offset=i;
+      o.start=new Date(d.getFullYear(),d.getMonth(),d.getDate(),0,s.s);
+      o.end=new Date(d.getFullYear(),d.getMonth(),d.getDate(),0,s.e);
+      out.push(o);
+    });
+  }
+  return out;
+}
+
+
+/* ---------- Faculty names (the PDF has initials only; full names are typed in by the student) ---------- */
+var BATCHES=['B1','B2','B3'];
+var esc=function(t){return String(t).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
+var names={};   // optional overrides typed by the student; the PDF name is used when there is none
+try{names=JSON.parse(store.get('tt-names','{}'))||{};}catch(e){names={};}
+if(typeof names!=='object'||Array.isArray(names)) names={};
+var pdfName=function(i){var f=FAC[i];return f?(f.title?f.title+' ':'')+f.name:''};
+var facFull=function(i){return names[i]||pdfName(i)};
+var facLabel=function(i){var n=facFull(i);return n?n+' ('+i+')':i};
+
+/* ---------- Hero ---------- */
+function whenWord(o){
+  if(o.offset===0) return 'at '+fmtT(o.s);
+  if(o.offset===1) return 'tomorrow at '+fmtT(o.s);
+  return DAYS[o.date.getDay()].slice(0,3)+' at '+fmtT(o.s);
+}
+function heroModel(now,occ,cur,nxt){
+  var focus=cur||nxt;
+  if(!focus){
+    return {color:'#5B6478',state:'idle',html:
+      '<p class="status">No more classes in this timetable</p>'+
+      '<p class="subject idle" style="margin-top:14px">It ran from '+fmtDateLong(CUR.effFrom)+' to '+fmtDateLong(CUR.effTo)+'.</p>'};
+  }
+  var sub=SUBJ[focus.sub],today=dayStart(now,0);
+  var status,big;
+  if(cur){
+    status='<i class="dot"></i>In class now';
+    big=dur(cur.end-now)+' left';
+  }else if(focus.offset===0){
+    status='Up next today';
+    big='in '+dur(focus.start-now);
+  }else{
+    var hadToday=inRange(today)&&forDay(now.getDay(),st.batch).length>0;
+    if(today<START) status='The timetable starts on '+longDate(START)+'. First class:';
+    else status=hadToday?'Classes are over for today. Next up:':'No classes today. Next up:';
+    big=focus.offset===1?'Tomorrow':DAYS[focus.date.getDay()];
+  }
+  var after=cur?nxt:occ[occ.indexOf(nxt)+1];
+  var meta='<span>'+typeLine(focus)+'</span>'+
+    (focus.offset>0?'<span>'+shortDate(focus.date)+'</span>':'')+
+    '<span>'+fmtRange(focus.s,focus.e)+'</span>'+
+    '<span>Faculty '+esc(facLabel(focus.fac))+'</span>'+
+    '<span class="code">'+sub.code+'</span>';
+  var html='<p class="status">'+status+'</p>'+
+    '<p class="big">'+big+'</p>'+
+    '<div class="hero-row"><div>'+
+      '<p class="subject">'+sub.name+'</p><p class="meta">'+meta+'</p></div>'+
+      '<div class="plate" role="group" aria-label="Room '+focus.room+'"><span class="plate-l">Room</span><span class="plate-n">'+focus.room+'</span></div>'+
+    '</div>';
+  if(cur){
+    var p=Math.round((now-cur.start)/(cur.end-cur.start)*100);
+    html+='<div class="prog" role="progressbar" aria-label="Class progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="'+p+'"><i style="--p:'+p+'%"></i></div>';
+  }
+  if(after){
+    var as=SUBJ[after.sub];
+    var kind=after.type==='Theory'?'':' '+after.type.toLowerCase();
+    html+='<p class="then">Then '+whenWord(after)+': '+as.name+kind+', room '+after.room+'.</p>';
+  }
+  html+='<button type="button" class="hero-btn" aria-haspopup="dialog" data-act="open" data-sid="'+focus.id+'" data-date="'+focus.date.getTime()+'" data-key="hero-open">Details and other batches</button>';
+  return {color:sub.color,state:cur?'live':'next',html:html};
+}
+
+/* ---------- Timeline blocks ---------- */
+function blockHTML(x,o){
+  var sub=SUBJ[x.sub];
+  var key='blk-'+(o.sm?'wk':'day')+'-'+x.id;
+  var chip=o.state==='live'?'<span class="chip live"><i class="ldot"></i>Now</span>':
+           o.state==='next'?'<span class="chip nxt">Next</span>':'';
+  return '<li class="blk'+(o.sm?' sm':'')+(chip?' has-chip':'')+'" data-state="'+(o.state||'')+'"'+
+    (o.state==='live'?' aria-current="true"':'')+
+    ' style="--c:'+sub.color+';top:'+o.top+';height:'+o.h+'">'+
+    '<button type="button" class="blk-btn" aria-haspopup="dialog" data-act="open" data-sid="'+x.id+'" data-date="'+(o.date||0)+'" data-key="'+key+'-'+(o.date||0)+'">'+
+    '<span class="sr">'+fmtRange(x.s,x.e)+', </span>'+
+    (o.sm?'<span class="blk-name" title="'+sub.name+'"><span aria-hidden="true">'+sub.short+'</span><span class="sr">'+sub.name+'</span></span>':'<span class="blk-name">'+sub.name+'</span>')+
+    '<span class="blk-meta"><b>'+x.room+'</b><span>'+x.type+'</span><span>'+x.fac+'</span></span></button>'+chip+'</li>';
+}
+
+function timelineHTML(list,isToday,now,date){
+  var nowM=mins(now);
+  var h0=Math.floor(list[0].s/60);
+  var h1=Math.ceil(Math.max.apply(null,list.map(function(x){return x.e}))/60);
+  var rows=h1-h0;
+  var y=function(m){return 'calc(var(--hr)*'+((m-h0*60)/60).toFixed(4)+')'};
+  var nextIdx=isToday?list.findIndex(function(x){return x.s>nowM}):-1;
+  var gut='';
+  for(var i=0;i<=rows;i++) gut+='<span style="top:'+y((h0+i)*60)+'">'+fmtH(h0+i)+'</span>';
+  var gaps='',reach=list[0].e;
+  list.forEach(function(x,i){
+    if(i>0&&x.s-reach>=60){
+      gaps+='<div class="gap" aria-hidden="true" style="top:'+y(reach)+';height:calc(var(--hr)*'+((x.s-reach)/60).toFixed(4)+')">Free for '+dur((x.s-reach)*60000)+'</div>';
+    }
+    reach=Math.max(reach,x.e);
+  });
+  var blks=list.map(function(x,i){
+    var state='';
+    if(isToday){ if(x.e<=nowM) state='past'; else if(x.s<=nowM) state='live'; else if(i===nextIdx) state='next'; }
+    return blockHTML(x,{state:state,date:date.getTime(),top:'calc('+y(x.s)+' + 2px)',h:'calc(var(--hr)*'+((x.e-x.s)/60).toFixed(4)+' - 4px)'});
+  }).join('');
+  var line='';
+  if(isToday&&nowM>=h0*60&&nowM<=h1*60){
+    line='<div class="now" style="top:'+y(nowM)+'"><span class="now-t">'+fmtT(nowM).replace(/ [ap]m$/,'')+'</span></div>';
+  }
+  return '<div class="tl" style="--rows:'+rows+'"><div class="tl-gut" aria-hidden="true">'+gut+'</div>'+
+    '<div class="tl-track">'+gaps+'<ol class="blks">'+blks+'</ol></div>'+line+'</div>';
+}
+
+/* ---------- Day panel ---------- */
+function panelHTML(now,occ,sel){
+  var tabs='';
+  for(var i=0;i<7;i++){
+    var d=dayStart(now,i);
+    var list=inRange(d)?forDay(d.getDay(),st.batch):[];
+    var lbl=i===0?'Today':i===1?'Tomorrow':DAYS[d.getDay()];
+    tabs+='<button type="button" class="tab'+(list.length?'':' free')+'" data-act="day" data-off="'+i+'" data-key="day-'+i+'" aria-pressed="'+(i===sel)+'">'+
+      '<span class="t1">'+(i===0?'<i class="tdot"></i>':'')+lbl+'</span>'+
+      '<span class="t2">'+shortDate(d)+'</span>'+
+      '<span class="t3">'+(list.length?list.length+(list.length===1?' class':' classes'):'No classes')+'</span></button>';
+  }
+  var sd=dayStart(now,sel);
+  var sl=inRange(sd)?forDay(sd.getDay(),st.batch):[];
+  var head='<div class="day-head"><h2>'+longDate(sd)+'</h2>';
+  var body;
+  if(sl.length){
+    var last=Math.max.apply(null,sl.map(function(x){return x.e}));
+    head+='<p class="day-sum">'+sl.length+(sl.length===1?' class':' classes')+', '+fmtT(sl[0].s)+' to '+fmtT(last)+'</p></div>';
+    body=timelineHTML(sl,sel===0,now,sd);
+  }else{
+    head+='</div>';
+    var nx=occ.find(function(o){return o.offset>sel});
+    var word=sel===0?'today':sd.getDay()===6||sd.getDay()===0?'on '+DAYS[sd.getDay()]:'on '+DAYS[sd.getDay()];
+    var txt='No classes '+word+'.';
+    var next='',btn='';
+    if(nx){
+      next='Your next class is '+SUBJ[nx.sub].name+(nx.type==='Theory'?'':' '+nx.type.toLowerCase())+' on '+DAYS[nx.date.getDay()]+' at '+fmtT(nx.s)+'.';
+      if(nx.offset<=6) btn='<button type="button" class="btn" data-act="day" data-off="'+nx.offset+'" data-key="goto">View '+(nx.offset===1?'tomorrow':DAYS[nx.date.getDay()])+'</button>';
+    }else if(!inRange(sd)){
+      txt='This date is outside the timetable.';
+    }
+    body='<div class="empty"><p class="empty-title">'+txt.replace(/\.$/,'')+'</p><p class="empty-body">'+next+'</p>'+btn+'</div>';
+  }
+  return '<div class="days" aria-label="Choose a day">'+tabs+'</div>'+head+body;
+}
+
+/* ---------- Week ---------- */
+function weekHTML(now){
+  var wd=WEEK,last=wd[wd.length-1];
+  var dow=now.getDay(),mo=dow===0?1:dow>last?8-dow:1-dow;
+  // once the last class day of the week is over, show the coming week instead
+  var lastEnd=Math.max.apply(null,forDay(last,st.batch).map(function(x){return x.e}));
+  var rolled=dow===last&&mins(now)>=lastEnd;
+  if(rolled) mo=8-dow;
+  var cols=[];
+  for(var i=0;i<wd.length;i++){var d=dayStart(now,mo+i);cols.push({d:d,list:inRange(d)?forDay(d.getDay(),st.batch):[]});}
+  var all=[].concat.apply([],cols.map(function(c){return c.list}));
+  if(!all.length) return '';
+  var h0=Math.floor(Math.min.apply(null,all.map(function(x){return x.s}))/60);
+  var h1=Math.ceil(Math.max.apply(null,all.map(function(x){return x.e}))/60);
+  var rows=h1-h0,nowM=mins(now);
+  var y=function(m){return 'calc(var(--hrw)*'+((m-h0*60)/60).toFixed(4)+')'};
+  var gut='';
+  for(var g=0;g<=rows;g++) gut+='<span style="top:'+y((h0+g)*60)+'">'+fmtH(h0+g)+'</span>';
+  var head='<div></div>',body='',hasToday=false;
+  cols.forEach(function(c){
+    var isT=sameDay(c.d,now);if(isT)hasToday=true;
+    head+='<div class="wk-h"'+(isT?' aria-current="date"':'')+'><span>'+(isT?'<i class="tdot"></i>':'')+DAYS[c.d.getDay()].slice(0,3)+'</span><small>'+shortDate(c.d)+'</small></div>';
+    var blks=c.list.map(function(x){
+      var state='';
+      if(isT){ if(x.e<=nowM) state='past'; else if(x.s<=nowM) state='live'; }
+      return blockHTML(x,{state:state,sm:true,date:c.d.getTime(),top:'calc('+y(x.s)+' + 2px)',h:'calc(var(--hrw)*'+((x.e-x.s)/60).toFixed(4)+' - 4px)'});
+    }).join('');
+    body+='<div class="wk-col'+(isT?' today':'')+'"><ol class="blks">'+blks+'</ol></div>';
+  });
+  var line='';
+  if(hasToday&&nowM>=h0*60&&nowM<=h1*60){
+    line='<div class="wk-now"><div class="now" style="top:'+y(nowM)+'"><span class="now-t">'+fmtT(nowM).replace(/ [ap]m$/,'')+'</span></div></div>';
+  }
+  var tot={Theory:0,Lab:0,Tutorial:0};
+  for(var w=0;w<wd.length;w++) forDay(wd[w],st.batch).forEach(function(x){tot[x.type]+=(x.e-x.s)/60});
+  var title=(dow===0||dow>last||rolled)?'Next week':'This week';
+  var offDays=last===6?'Sunday has':'Saturday and Sunday have';
+  return '<div class="weekp-head"><h2>'+title+'</h2><p>'+shortDate(cols[0].d)+' to '+shortDate(cols[cols.length-1].d)+', batch '+st.batch+'</p></div>'+
+    '<div class="wk-scroll"><div class="wk'+(wd.length>5?' six':'')+'" style="--rows:'+rows+';--nc:'+wd.length+'">'+head+
+    '<div class="wk-gut" aria-hidden="true">'+gut+'</div>'+body+line+'</div></div>'+
+    '<p class="week-note">Each week for batch '+st.batch+': '+tot.Theory+' h of theory, '+tot.Lab+' h of labs and '+tot.Tutorial+' h of tutorials. '+offDays+' no classes.</p>';
+}
+
+/* ---------- Render ---------- */
+function render(){
+  if(!CUR||$('#view').hidden) return;
+  var ae=document.activeElement,key=ae&&ae.getAttribute?ae.getAttribute('data-key'):null;
+  var sc={};['days','wk-scroll'].forEach(function(c){var el=$('.'+c);if(el)sc[c]=el.scrollLeft});
+
+  var now=nowFloor(),today=dayStart(now,0);
+  var occ=occurrences(now,21);
+  var cur=occ.find(function(o){return o.start<=now&&now<o.end})||null;
+  var nxt=occ.find(function(o){return o.start>now})||null;
+  var focus=cur||nxt;
+
+  var sel=null;
+  if(st.dayMs!==null){
+    var off=Math.round((st.dayMs-today.getTime())/864e5);
+    if(off>=0&&off<=6) sel=off; else st.dayMs=null;
+  }
+  if(sel===null) sel=focus&&focus.offset<=6?focus.offset:0;
+
+  $('#h1').textContent=CUR.title;
+  document.title=CUR.title+' timetable';
+  $('#subLine').textContent='First year, semester 1. Timetable version '+CUR.version+', valid '+fmtDateLong(CUR.effFrom)+' to '+fmtDateLong(CUR.effTo)+'.';
+  $('#footTxt').textContent="Built from timetable Form FF957 for First Year "+CUR.pdf+", version "+CUR.version+", effective "+fmtDateLong(CUR.effFrom)+" to "+fmtDateLong(CUR.effTo)+". Class blocks show faculty initials; tap a class for full names from the faculty list on page 2 of the PDF, pulled live from the TimeTable_VIT database. Holidays and notices aren't included, so check announcements before you head out.";
+  $('#clockTime').textContent=fmtT(mins(now));
+  $('#clockDate').textContent=DAYS[now.getDay()]+', '+now.getDate()+' '+MONS[now.getMonth()]+' '+now.getFullYear();
+  document.querySelectorAll('[data-act="batch"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===st.batch))});
+  document.querySelectorAll('[data-act="fmt"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===st.fmt))});
+
+  var hm=heroModel(now,occ,cur,nxt);
+  var hero=$('#hero');
+  hero.style.setProperty('--c',hm.color);
+  hero.setAttribute('data-state',hm.state);
+  hero.innerHTML=hm.html;
+  $('#panel').innerHTML=panelHTML(now,occ,sel);
+  $('#week').innerHTML=weekHTML(now);
+
+  Object.keys(sc).forEach(function(c){var el=$('.'+c);if(el)el.scrollLeft=sc[c]});
+  if(centerTab){
+    var days=$('.days'),btn=$('.tab[aria-pressed="true"]');
+    if(days&&btn) days.scrollLeft=btn.offsetLeft-(days.clientWidth-btn.offsetWidth)/2;
+    centerTab=false;
+  }
+  if(key){var el=document.querySelector('[data-key="'+key+'"]');if(el&&el!==document.activeElement)el.focus({preventScroll:true});}
+}
+
+
+/* ---------- Detail sheet ---------- */
+var openCtx=null;
+var byTime=function(a,b){return a.d-b.d||a.s-b.s};
+
+function sessRow(y,here){
+  return '<li class="srow'+(here?' here':'')+'" style="--c:'+SUBJ[y.sub].color+'">'+
+    '<span class="sd">'+DAYS[y.d].slice(0,3)+'</span>'+
+    '<span><span class="stm">'+fmtRange(y.s,y.e)+(here?' (this class)':'')+'</span>'+
+    '<span class="blk-meta"><b>'+y.room+'</b><span>'+y.type+'</span><span>'+esc(facFull(y.fac)||y.fac)+'</span></span></span></li>';
+}
+function group(label,list,x,mine){
+  if(!list.length) return '';
+  return '<div class="grp"><h4 class="grp-h">'+label+(mine?'<span class="tag">Your batch</span>':'')+'</h4><ul class="srows">'+
+    list.map(function(y){return sessRow(y,y.id===x.id)}).join('')+'</ul></div>';
+}
+
+function detailHTML(x,dateMs,now){
+  var sub=SUBJ[x.sub],date=dateMs?new Date(dateMs):null,nowM=mins(now),status='';
+  if(date&&sameDay(date,now)){
+    if(x.e<=nowM) status='Finished for today';
+    else if(x.s<=nowM) status='In progress, '+dur((x.e-nowM)*60000)+' left';
+    else status='Starts in '+dur((x.s-nowM)*60000);
+  }
+  var head='<header class="sh-head" style="--c:'+sub.color+'"><div>'+
+    '<h2 id="shTitle" class="sh-title">'+sub.name+'</h2>'+
+    '<p class="sh-sub">'+sub.code+', '+typeLine(x)+'</p>'+
+    (status?'<span class="sh-status">'+status+'</span>':'')+'</div>'+
+    '<button type="button" class="sh-x" data-act="close" aria-label="Close details"><svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4 4l12 12M16 4L4 16"/></svg></button></header>';
+
+  // 1. this class
+  var when=DAYS[x.d]+(date?', '+shortDate(date):'');
+  var sec1='<section class="sec"><dl class="kv">'+
+    '<dt>When</dt><dd>'+when+'</dd>'+
+    '<dt>Time</dt><dd>'+fmtRange(x.s,x.e)+' ('+dur((x.e-x.s)*60000)+')</dd>'+
+    '<dt>Room</dt><dd>'+x.room+'</dd>'+
+    '<dt>Type</dt><dd>'+x.type+(x.b?', batch '+x.b:', whole division')+'</dd>'+
+    '<dt>Faculty</dt><dd>'+esc(facLabel(x.fac))+'</dd></dl></section>';
+
+  // 2. other batches in the same slot
+  var sec2;
+  if(x.b){
+    var rows=BATCHES.filter(function(b){return b!==x.b}).map(function(b){
+      var m=SESS.filter(function(y){return y.d===x.d&&y.b===b&&y.s<x.e&&x.s<y.e}).sort(byTime);
+      if(!m.length) return '<li class="ob free"><span class="ob-b">'+b+'</span><span class="ob-n" style="font-weight:400">No class in this slot</span></li>';
+      return m.map(function(y){
+        return '<li class="ob" style="--c:'+SUBJ[y.sub].color+'"><span class="ob-b">'+b+'</span><span><span class="ob-n">'+SUBJ[y.sub].name+'</span>'+
+          '<span class="blk-meta"><b>'+y.room+'</b><span>'+y.type+'</span><span>'+esc(facFull(y.fac)||y.fac)+'</span><span>'+fmtRange(y.s,y.e)+'</span></span></span></li>';
+      }).join('');
+    }).join('');
+    sec2='<section class="sec"><h3 class="sh-h">Other batches in this slot</h3><ul class="ob-list">'+rows+'</ul></section>';
+  }else{
+    sec2='<section class="sec"><h3 class="sh-h">Other batches in this slot</h3><p class="sh-note">This is a whole-division class, so every batch attends it together.</p></section>';
+  }
+
+  // 3. faculty for this subject (full names are typed in by the student)
+  var all=SESS.filter(function(y){return y.sub===x.sub}).sort(byTime);
+  var order=[x.fac],roles={};
+  all.forEach(function(y){
+    if(order.indexOf(y.fac)<0) order.push(y.fac);
+    // group by type so it reads "Tutorial, B2 and B3" instead of repeating the type
+    var g=(roles[y.fac]=roles[y.fac]||[]);
+    var hit=g.filter(function(e){return e.t===y.type})[0];
+    if(!hit){hit={t:y.type,b:[]};g.push(hit);}
+    if(y.b&&hit.b.indexOf(y.b)<0) hit.b.push(y.b);
+  });
+  Object.keys(roles).forEach(function(f){
+    roles[f]=roles[f].map(function(e){return e.t+(e.b.length?', '+e.b.join(' and '):'')});
+  });
+  var fl=order.map(function(f){
+    var rec=FAC[f]||{};
+    return '<li class="fac'+(f===x.fac?' cur':'')+'" style="--c:'+sub.color+'">'+
+      '<span class="fac-i">'+f+'</span>'+
+      '<span class="fac-n" data-fn="'+f+'">'+esc(facFull(f)||'Name not in the PDF')+'</span>'+
+      '<span class="fac-r">'+roles[f].join(' and ')+(rec.id?', staff ID '+esc(rec.id):'')+'</span></li>';
+  }).join('');
+  var sec3='<section class="sec"><h3 class="sh-h">Faculty for '+sub.name+'</h3><ul class="fac-list">'+fl+'</ul>'+
+    '<p class="sh-note" style="margin-top:10px">Names are from the faculty list on page 2 of your timetable PDF.</p></section>';
+
+  // 4. every session of this subject: whole division, your batch, then the other batches
+  var hrs={};
+  all.forEach(function(y){if(!y.b||y.b===st.batch) hrs[y.type]=(hrs[y.type]||0)+(y.e-y.s)/60});
+  var hrTxt=Object.keys(hrs).map(function(k){return hrs[k]+' h '+k.toLowerCase()}).join(', ');
+  var whole=all.filter(function(y){return !y.b});
+  var mine=all.filter(function(y){return y.b===st.batch});
+  var others=BATCHES.filter(function(b){return b!==st.batch}).map(function(b){
+    return group('Batch '+b,all.filter(function(y){return y.b===b}),x,false);
+  }).join('');
+  var sec4='<section class="sec"><h3 class="sh-h">All '+esc(sub.name)+' classes <small>Batch '+st.batch+' has '+hrTxt+' a week</small></h3>'+
+    group('Whole division',whole,x,false)+group('Batch '+st.batch,mine,x,true)+
+    (others?'<details class="more"><summary>Other batches</summary>'+others+'</details>':'')+'</section>';
+
+  return head+'<div class="sh-body">'+sec1+sec2+sec3+sec4+'</div>';
+}
+
+function fillSheet(){
+  if(!openCtx) return;
+  $('#sheetBody').innerHTML=detailHTML(SESS[openCtx.sid],openCtx.dateMs,nowFloor());
+}
+function openDetail(sid,dateMs,key){
+  if(!SESS[sid]) return;
+  openCtx={sid:sid,dateMs:dateMs,key:key};
+  fillSheet();
+  var dlg=$('#sheet');
+  if(!dlg.open){ if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open',''); }
+  document.documentElement.classList.add('lock');
+  var b=dlg.querySelector('.sh-body'); if(b) b.scrollTop=0;
+}
+function afterClose(){
+  document.documentElement.classList.remove('lock');
+  var key=openCtx&&openCtx.key; openCtx=null;
+  if(!key) return;
+  // the page re-renders every minute (and when a name is saved), so find the button again by its key
+  var go=function(){
+    var a=document.activeElement;
+    if(a&&a!==document.body&&a.getAttribute&&a.getAttribute('data-key')) return;
+    var el=document.querySelector('[data-key="'+key+'"]');
+    if(!el&&key.indexOf('hero')<0){                       // block no longer on screen: fall back to the hero button
+      el=document.querySelector('[data-key="hero-open"]');
+    }
+    if(el) el.focus({preventScroll:true});
+  };
+  go(); setTimeout(go,0);
+}
+function closeSheet(){
+  var dlg=$('#sheet');
+  if(!dlg.open) return;
+  if(typeof dlg.close==='function') dlg.close(); else {dlg.removeAttribute('open');afterClose();}
+}
+$('#sheet').addEventListener('close',afterClose);
+$('#sheet').addEventListener('cancel',function(){/* Esc closes natively */});
+
+
+
+/* ---------- Class picker ---------- */
+var pk={branch:'',div:'',batch:''},rawBatch='';
+function fixDiv(){                                   // a branch with a single division needs no extra tap
+  var ds=pk.branch?Object.keys(CLASSES[pk.branch].divs):[];
+  if(ds.indexOf(pk.div)<0) pk.div=ds.length===1?ds[0]:'';
+}
+function optBtns(act,items,cur){
+  return items.map(function(it){
+    return '<button type="button" class="opt" data-act="'+act+'" data-v="'+esc(it.v)+'" aria-pressed="'+(it.v===cur)+'">'+esc(it.t)+'</button>';
+  }).join('');
+}
+function renderPicker(){
+  $('#pkBranch').innerHTML=optBtns('pk-branch',Object.keys(CLASSES).map(function(k){return {v:k,t:CLASSES[k].label}}),pk.branch);
+  var ds=pk.branch?Object.keys(CLASSES[pk.branch].divs):[];
+  $('#pkDiv').innerHTML=ds.length?optBtns('pk-div',ds.map(function(k){return {v:k,t:k}}),pk.div):'<p class="pk-hint">Pick a branch first.</p>';
+  $('#pkBatch').innerHTML=optBtns('pk-batch',BATCHES.map(function(k){return {v:k,t:k}}),pk.batch);
+  $('#pkGo').disabled=!(pk.branch&&pk.div&&pk.batch);
+}
+// msg='' shows the form; a non-empty msg hides the form and shows msg instead (loading / error states)
+function showPickerStatus(msg){
+  var s=$('#pkStatus'),f=$('#pkForm');
+  s.style.display=msg?'flex':'none';s.textContent=msg||'';
+  f.style.display=msg?'none':'';
+}
+function openPicker(cancelable){
+  pk.branch=CUR?st.branch:'';pk.div=CUR?st.div:'';pk.batch=CUR?st.batch:rawBatch;
+  fixDiv();
+  showPickerStatus('');
+  $('#pkCancel').hidden=!cancelable;
+  $('#view').hidden=true;$('#picker').hidden=false;
+  renderPicker();
+  window.scrollTo(0,0);
+  if(cancelable) $('#pkTitle').focus({preventScroll:true});
+}
+function closePicker(){
+  $('#picker').hidden=true;$('#view').hidden=false;
+  centerTab=true;render();
+  var c=document.querySelector('.chg');
+  if(c) c.focus({preventScroll:true});
+}
+function pickerAct(a,b){
+  var v=b.getAttribute('data-v');
+  if(a==='pk-cancel'){ if(CUR) closePicker(); return; }
+  if(a==='pk-go'){
+    if(!(pk.branch&&pk.div&&pk.batch)) return;
+    var goBranch=pk.branch,goDiv=pk.div,goBatch=pk.batch;
+    $('#pkGo').disabled=true;$('#pkGo').textContent='Loading\u2026';
+    setClass(goBranch,goDiv).then(function(ok){
+      $('#pkGo').textContent='Show my timetable';
+      if(!ok){ $('#pkGo').disabled=false; showPickerStatus('Could not load that timetable. Check your connection and try again.'); return; }
+      st.batch=goBatch;
+      store.set('tt-branch',goBranch);store.set('tt-div',goDiv);store.set('tt-batch',goBatch);
+      closePicker();
+    });
+    return;
+  }
+  if(a==='pk-branch'){ if(pk.branch!==v){pk.branch=v;pk.div='';} fixDiv(); }
+  else if(a==='pk-div') pk.div=v;
+  else if(a==='pk-batch') pk.batch=v;
+  renderPicker();
+  var again=document.querySelector('#picker [data-act="'+a+'"][data-v="'+v+'"]');   // keep keyboard focus after the redraw
+  if(again) again.focus({preventScroll:true});
+}
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape'&&!$('#picker').hidden&&CUR&&!$('#pkCancel').hidden) closePicker();
+});
+
+var termsOpener=null;
+function openTerms(opener){
+  termsOpener=opener||null;
+  var dlg=$('#terms');
+  if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
+}
+function closeTerms(){
+  var dlg=$('#terms');
+  if(typeof dlg.close==='function') dlg.close(); else dlg.removeAttribute('open');
+}
+$('#terms').addEventListener('close',function(){
+  if(termsOpener) termsOpener.focus({preventScroll:true});
+  termsOpener=null;
+});
+
+document.addEventListener('click',function(e){
+  if(e.target&&e.target.id==='sheet'){closeSheet();return;}   // tap on the dimmed backdrop
+  if(e.target&&e.target.id==='terms'){closeTerms();return;}
+  var b=e.target.closest('[data-act]');if(!b)return;
+  var a=b.getAttribute('data-act');
+  if(a==='terms-open'){openTerms(b);return;}
+  if(a==='terms-close'){closeTerms();return;}
+  if(a==='change'){openPicker(true);return;}
+  if(a.indexOf('pk-')===0){pickerAct(a,b);return;}
+  if(a==='open'){openDetail(+b.getAttribute('data-sid'),+b.getAttribute('data-date')||0,b.getAttribute('data-key'));return;}
+  if(a==='close'){closeSheet();return;}
+  if(a==='batch'){st.batch=b.getAttribute('data-v');store.set('tt-batch',st.batch);}
+  else if(a==='fmt'){st.fmt=b.getAttribute('data-v');store.set('tt-fmt',st.fmt);}
+  else if(a==='day'){st.dayMs=dayStart(nowFloor(),+b.getAttribute('data-off')).getTime();centerTab=true;}
+  render();
+});
+
+var lastK=minuteKey();
+function tick(){var k=minuteKey();if(k!==lastK){lastK=k;render();}}
+
+function boot(){
+  $('#view').hidden=true;$('#picker').hidden=false;$('#pkCancel').hidden=true;
+  showPickerStatus('Loading classes\u2026');
+  loadDivisions().then(function(){
+    // saved choice: branch + division + batch. The earlier CSSE-C-only page saved just a batch, so treat that as CSSE-C.
+    var sBr=store.get('tt-branch',''),sDv=store.get('tt-div','');
+    rawBatch=store.get('tt-batch','');
+    if(!sBr&&!sDv&&rawBatch){sBr='CSSE';sDv='C';}
+    if(BATCHES.indexOf(rawBatch)<0) rawBatch='';
+    if(rawBatch){
+      return setClass(sBr,sDv).then(function(ok){
+        if(ok){ st.batch=rawBatch; closePicker(); }
+        else openPicker(false);
+      });
+    }
+    openPicker(false);             // first visit: ask for branch, division and batch
+  }).catch(function(e){
+    console.error(e);
+    showPickerStatus('Could not load the class list. Check your connection and reload the page.');
+  }).then(function(){
+    setInterval(tick,1000);
+    document.addEventListener('visibilitychange',tick);
+    window.addEventListener('focus',tick);
+  });
+}
+boot();
+})();
+</script>
+</body>
+</html>
