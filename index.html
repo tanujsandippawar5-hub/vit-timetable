@@ -1299,6 +1299,7 @@ function openAbout(opener){
   aboutOpener=opener||null;
   var dlg=$('#about');
   if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
+  logVisit('open_about',{branch:st.branch||store.get('tt-branch',''),div:st.div||store.get('tt-div',''),batch:st.batch});
 }
 function closeAbout(){
   var dlg=$('#about');
@@ -1313,7 +1314,7 @@ document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet'){closeSheet();return;}   // tap on the dimmed backdrop
   if(e.target&&e.target.id==='terms'){closeTerms();return;}
   if(e.target&&e.target.id==='about'){closeAbout();return;}
-  if(e.target&&e.target.id==='admin'){closeAdmin();return;}
+  if(e.target&&e.target.id==='admin'){ if(Date.now()-adminOpenedAt>500) closeAdmin(); return; }
   var b=e.target.closest('[data-act]');if(!b)return;
   var a=b.getAttribute('data-act');
   if(a==='terms-open'){openTerms(b);return;}
@@ -1408,7 +1409,9 @@ var ADM={pin:'',data:null,busy:false,range:'24h'};
 function escHtml(s){
   return String(s==null?'':s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});
 }
+var adminOpenedAt=0;
 function openAdmin(){
+  adminOpenedAt=Date.now();
   var dlg=$('#admin');
   if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
   if(ADM.pin) loadAdmin(); else renderPinForm();
@@ -1491,6 +1494,16 @@ function renderAdmin(){
       '<button type="button" data-act="admin-range" data-v="30d" aria-pressed="'+(ADM.range==='30d')+'">30d</button>'+
     '</div></div>';
   html+='<div class="adm-kpis">'+kpis.map(function(k){
+    return '<div class="adm-kpi"><span class="n">'+k.n+'</span><span class="u">'+k.u+'</span><span class="l">'+k.l+'</span></div>';
+  }).join('')+'</div>';
+  var ao=d.about_opens||{};
+  html+='<p class="adm-h">About Me opens</p>';
+  html+='<div class="adm-kpis">'+[
+    {l:'24 hours',n:ao.v_24h||0,u:(ao.u_24h||0)+' uniq'},
+    {l:'7 days',n:ao.v_7d||0,u:(ao.u_7d||0)+' uniq'},
+    {l:'30 days',n:ao.v_30d||0,u:(ao.u_30d||0)+' uniq'},
+    {l:'All time',n:ao.v_all||0,u:(ao.u_all||0)+' uniq'}
+  ].map(function(k){
     return '<div class="adm-kpi"><span class="n">'+k.n+'</span><span class="u">'+k.u+'</span><span class="l">'+k.l+'</span></div>';
   }).join('')+'</div>';
   html+='<p class="adm-h">'+(ADM.range==='30d'?'Last 30 days':'Last 24 hours')+'</p>';
