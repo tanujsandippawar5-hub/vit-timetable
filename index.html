@@ -544,17 +544,17 @@ dialog#admin::backdrop{background:rgba(12,16,32,.6)}
           </div>
         </div>
         <div class="about-links">
-          <a class="about-link" href="https://www.linkedin.com/in/vedant-bhat28" target="_blank" rel="noopener">LinkedIn</a>
-          <a class="about-link" href="https://github.com/vedantbhat28" target="_blank" rel="noopener">GitHub</a>
+          <a class="about-link" href="https://www.linkedin.com/in/vedant-bhat28" target="_blank" rel="noopener" data-act="ext-link" data-label="linkedin">LinkedIn</a>
+          <a class="about-link" href="https://github.com/vedantbhat28" target="_blank" rel="noopener" data-act="ext-link" data-label="github">GitHub</a>
         </div>
         <p class="about-section-h">Other projects</p>
         <p class="about-note">All built with the help of AI.</p>
         <div class="about-proj">
-          <p class="about-proj-name"><a href="https://cetkit.github.io/cetkit" target="_blank" rel="noopener">CETkit</a> <span class="tag">50+ users</span></p>
+          <p class="about-proj-name"><a href="https://cetkit.github.io/cetkit" target="_blank" rel="noopener" data-act="ext-link" data-label="cetkit">CETkit</a> <span class="tag">50+ users</span></p>
           <p class="about-proj-d">The ultimate practice platform for MHT-CET aspirants.</p>
         </div>
         <div class="about-proj">
-          <p class="about-proj-name"><a href="https://vedantbhat28.github.io/cppkit" target="_blank" rel="noopener">CPPkit</a> <span class="tag">Prototype</span></p>
+          <p class="about-proj-name"><a href="https://vedantbhat28.github.io/cppkit" target="_blank" rel="noopener" data-act="ext-link" data-label="cppkit">CPPkit</a> <span class="tag">Prototype</span></p>
           <p class="about-proj-d">An early, work-in-progress build.</p>
         </div>
       </div>
@@ -650,6 +650,7 @@ function logVisit(event,cls){
       path:location.pathname.slice(0,300),
       referrer:(document.referrer||'').slice(0,500)||null,
       branch:cls.branch||null,division:cls.div||null,batch:cls.batch||null,
+      link:cls.link||null,
       device:u.device,os:u.os,browser:u.browser,
       is_standalone:!!(window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true,
       screen:(screen.width||0)+'x'+(screen.height||0),
@@ -1321,6 +1322,7 @@ document.addEventListener('click',function(e){
   if(a==='terms-close'){closeTerms();return;}
   if(a==='about-open'){openAbout(b);return;}
   if(a==='about-close'){closeAbout();return;}
+  if(a==='ext-link'){logVisit('click_link',{branch:st.branch||store.get('tt-branch',''),div:st.div||store.get('tt-div',''),batch:st.batch,link:b.getAttribute('data-label')});return;}
   if(a==='admin-close'){closeAdmin();return;}
   if(a==='admin-lock'){lockAdmin();return;}
   if(a==='admin-refresh'){loadAdmin();return;}
@@ -1522,6 +1524,7 @@ function renderAdmin(){
     '<div><p class="adm-h">Referrers</p>'+rankList(d.referrers,'k','n')+'</div>'+
   '</div>';
   html+='<p class="adm-h">Classes</p>'+rankList(d.classes,'k','n');
+  html+='<p class="adm-h">Link clicks <span style="font-weight:400;color:var(--muted)">(30d)</span></p>'+rankList(d.link_clicks,'k','n');
   html+='<p class="adm-h">Latest visits</p>';
   var recent=d.recent||[];
   html+=recent.length?'<div class="adm-recent">'+recent.map(function(r){
