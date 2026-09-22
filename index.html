@@ -339,6 +339,38 @@ dialog#terms::backdrop{background:rgba(12,16,32,.55)}
 }
 @media (prefers-reduced-motion:reduce){dialog#terms[open]{animation:none}}
 
+/* ---- about-me button (header / picker) ---- */
+.hdr-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.hdr-actions .chg{margin-top:0}
+.pk-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.pk-top .pk-org{flex:1 1 auto;min-width:0}
+.pk-top .chg{flex:none;margin-top:0}
+
+/* ---- about-me dialog ---- */
+dialog#about{padding:0;border:0;margin:auto;background:var(--surface);color:var(--ink);width:min(440px,calc(100vw - 24px));max-width:none;max-height:none;border-radius:18px;overflow:hidden;box-shadow:0 24px 70px rgba(8,12,30,.4)}
+dialog#about[open]{animation:sheetIn .2s ease-out}
+dialog#about::backdrop{background:rgba(12,16,32,.55)}
+@media (max-width:600px){
+  dialog#about{width:100%;margin:auto 0 0;border-radius:18px 18px 0 0}
+  dialog#about[open]{animation-name:sheetUp}
+}
+@media (prefers-reduced-motion:reduce){dialog#about[open]{animation:none}}
+.about-profile{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.about-avatar{flex:none;width:52px;height:52px;border-radius:14px;background:var(--ink);color:var(--surface);display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:.02em}
+.about-name{margin:0;font-weight:700;font-size:16px;color:var(--ink)}
+.about-meta{margin:2px 0 0;color:var(--muted);font-size:12.5px}
+.about-links{display:flex;gap:8px;margin-bottom:18px}
+.about-link{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:4px 14px;border:1px solid var(--line);border-radius:10px;background:var(--wash);color:var(--ink);font-weight:600;font-size:12.5px;text-decoration:none}
+.about-link:hover{background:var(--line)}
+.about-link:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+.about-section-h{margin:0 0 2px;font-weight:700;font-size:13px;color:var(--ink)}
+.about-note{margin:0 0 12px;color:var(--muted);font-size:12px;font-style:italic}
+.about-proj{padding:10px 0;border-top:1px dashed var(--line)}
+.about-proj-name{margin:0;font-weight:700;font-size:14px}
+.about-proj-name a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
+.about-proj-name a:hover{color:var(--muted)}
+.about-proj-d{margin:3px 0 0;color:var(--muted);font-size:12.5px;line-height:1.45}
+
 @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(229,56,59,.55)}70%,100%{box-shadow:0 0 0 7px rgba(229,56,59,0)}}
 .dot{animation-name:pulseW}
 @keyframes pulseW{0%{box-shadow:0 0 0 0 rgba(255,255,255,.6)}70%,100%{box-shadow:0 0 0 7px rgba(255,255,255,0)}}
@@ -356,7 +388,10 @@ dialog#terms::backdrop{background:rgba(12,16,32,.55)}
       <h1 id="h1">Timetable</h1>
       <p class="campus" id="campusLine">&nbsp;</p>
       <p class="sub" id="subLine">First year, semester 1.</p>
-      <button type="button" class="chg" data-act="change"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h10.5M10 3l2.5 2.5L10 8M14 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg>Change class</button>
+      <div class="hdr-actions">
+        <button type="button" class="chg" data-act="change"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5.5h10.5M10 3l2.5 2.5L10 8M14 10.5H3.5M6 8l-2.5 2.5L6 13"/></svg>Change class</button>
+        <button type="button" class="chg" data-act="about-open"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="5.3" r="2.6"/><path d="M2.6 13.2c.9-3 3-4.4 5.4-4.4s4.5 1.4 5.4 4.4"/></svg>About Me</button>
+      </div>
     </div>
     <div class="clock">
       <div class="clock-time" id="clockTime">--:--</div>
@@ -395,7 +430,10 @@ dialog#terms::backdrop{background:rgba(12,16,32,.55)}
 
   <section id="picker" class="picker" hidden aria-labelledby="pkTitle">
     <div class="pk-card">
-      <p class="pk-org">Vishwakarma Institute of Technology, Pune</p>
+      <div class="pk-top">
+        <p class="pk-org">Vishwakarma Institute of Technology, Pune</p>
+        <button type="button" class="chg" data-act="about-open"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="5.3" r="2.6"/><path d="M2.6 13.2c.9-3 3-4.4 5.4-4.4s4.5 1.4 5.4 4.4"/></svg>About Me</button>
+      </div>
       <h2 id="pkTitle" class="pk-title" tabindex="-1">Find your timetable</h2>
       <p class="pk-sub">For FY Freshers &middot; Academic Year 2026&ndash;27. Pick your class once — it is saved on this device, so next time your schedule opens straight away.</p>
       <p class="pk-story">I knew the struggle of scrolling through ugly PDFs just to find our timetable, so I built this instead. Pick your class below and see your schedule in a clean, easy-to-read format.</p>
@@ -422,6 +460,37 @@ dialog#terms::backdrop{background:rgba(12,16,32,.55)}
       <div class="terms-body">
         <p>This timetable data is extracted with the help of AI from the official department schedules. While every effort has been made to keep it accurate, errors — wrong rooms, times, or faculty — can happen.</p>
         <p>I won't be responsible for any issues, missed classes, or clashes caused by inaccuracies in this timetable. Please treat it as a convenient reference and cross-check with the official college timetable for anything important.</p>
+      </div>
+    </div>
+  </dialog>
+  <dialog id="about" aria-labelledby="aboutTitle">
+    <div class="terms">
+      <div class="terms-head">
+        <h3 id="aboutTitle">About Me</h3>
+        <button type="button" class="terms-x" data-act="about-close" aria-label="Close"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></button>
+      </div>
+      <div class="terms-body">
+        <div class="about-profile">
+          <div class="about-avatar" aria-hidden="true">VB</div>
+          <div>
+            <p class="about-name">Vedant Bhat</p>
+            <p class="about-meta">VIT Pune &rsquo;30 &middot; FY, CSE(SE)-C</p>
+          </div>
+        </div>
+        <div class="about-links">
+          <a class="about-link" href="https://www.linkedin.com/in/vedant-bhat28" target="_blank" rel="noopener">LinkedIn</a>
+          <a class="about-link" href="https://github.com/vedantbhat28" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <p class="about-section-h">Other projects</p>
+        <p class="about-note">All built with the help of AI.</p>
+        <div class="about-proj">
+          <p class="about-proj-name"><a href="https://cetkit.github.io/cetkit" target="_blank" rel="noopener">CETkit</a> <span class="tag">50+ users</span></p>
+          <p class="about-proj-d">The ultimate practice platform for MHT-CET aspirants.</p>
+        </div>
+        <div class="about-proj">
+          <p class="about-proj-name"><a href="https://vedantbhat28.github.io/cppkit" target="_blank" rel="noopener">CPPkit</a> <span class="tag">Prototype</span></p>
+          <p class="about-proj-d">An early, work-in-progress build.</p>
+        </div>
       </div>
     </div>
   </dialog>
@@ -507,7 +576,8 @@ function humanName(raw){
    Codes not listed here (e.g. CS, IT) are shown exactly as Supabase has them. */
 var BRANCH_DISPLAY={
   CSAIML:'CSE(AI-ML)', CSAI:'CSE (AI)', AIDS:'AI & DS', CSSE:'CSE(Software)',
-  CSCBI:'CSE (IoT & CSBT)', CSDS:'CSE (Data Science)', CV:'Civil', IC:'Instrumentation', ME:'Mechanical'
+  CSCBI:'CSE (IoT & CSBT)', CSDS:'CSE (Data Science)', CV:'Civil', IC:'Instrumentation', ME:'Mechanical',
+  ET:'EnTC'
 };
 function branchLabel(code){ return BRANCH_DISPLAY[code]||code; }
 var BIBWEWADI=['CS','IT','CSAIML','CSAI'];
@@ -1083,13 +1153,31 @@ $('#terms').addEventListener('close',function(){
   termsOpener=null;
 });
 
+var aboutOpener=null;
+function openAbout(opener){
+  aboutOpener=opener||null;
+  var dlg=$('#about');
+  if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
+}
+function closeAbout(){
+  var dlg=$('#about');
+  if(typeof dlg.close==='function') dlg.close(); else dlg.removeAttribute('open');
+}
+$('#about').addEventListener('close',function(){
+  if(aboutOpener) aboutOpener.focus({preventScroll:true});
+  aboutOpener=null;
+});
+
 document.addEventListener('click',function(e){
   if(e.target&&e.target.id==='sheet'){closeSheet();return;}   // tap on the dimmed backdrop
   if(e.target&&e.target.id==='terms'){closeTerms();return;}
+  if(e.target&&e.target.id==='about'){closeAbout();return;}
   var b=e.target.closest('[data-act]');if(!b)return;
   var a=b.getAttribute('data-act');
   if(a==='terms-open'){openTerms(b);return;}
   if(a==='terms-close'){closeTerms();return;}
+  if(a==='about-open'){openAbout(b);return;}
+  if(a==='about-close'){closeAbout();return;}
   if(a==='install-yes'){installNow();return;}
   if(a==='install-no'){dismissInstall();return;}
   if(a==='change'){openPicker(true);return;}
