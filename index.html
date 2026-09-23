@@ -147,10 +147,20 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(21px,4.4vw,26px);l
 .btn{margin-top:12px;padding:7px 16px;min-height:38px;border:1px solid var(--ink);border-radius:10px;background:var(--ink);color:var(--surface);font-weight:600;cursor:pointer}
 
 /* holiday / exam-window overlay */
-.hol-strip{display:flex;align-items:center;gap:8px;margin:10px 2px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;font-weight:600}
-.hol-strip.holiday{background:rgba(217,83,79,.12);color:#a5352f}
-.hol-strip.exam{background:rgba(217,150,20,.14);color:#8a5d00}
-.hol-strip a{color:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:600}
+.hol-box{display:flex;align-items:flex-start;gap:12px;margin:10px 2px 0;padding:16px 16px 15px;border-radius:14px;border:1px solid transparent}
+.hol-box.holiday{background:rgba(217,83,79,.10);border-color:rgba(217,83,79,.22)}
+.hol-box.exam{background:rgba(217,150,20,.12);border-color:rgba(217,150,20,.25)}
+.hol-box .hol-ic{flex:0 0 auto;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.hol-box.holiday .hol-ic{background:rgba(217,83,79,.18);color:#a5352f}
+.hol-box.exam .hol-ic{background:rgba(217,150,20,.2);color:#8a5d00}
+.hol-box .hol-kicker{margin:0;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.85}
+.hol-box.holiday .hol-kicker{color:#a5352f}
+.hol-box.exam .hol-kicker{color:#8a5d00}
+.hol-box .hol-title{margin:3px 0 0;font-family:var(--display);font-weight:800;font-size:clamp(18px,4.4vw,22px);line-height:1.15}
+.hol-box.holiday .hol-title{color:#a5352f}
+.hol-box.exam .hol-title{color:#8a5d00}
+.hol-box .hol-sub{margin:6px 0 0;font-size:12.5px;color:var(--muted)}
+.hol-box .hol-sub a{color:inherit;font-weight:600;text-decoration:underline;text-underline-offset:2px}
 .day-off{position:relative}
 .day-off::before{content:'';position:absolute;inset:0;border-radius:12px;background:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 10px,transparent 10px 20px);pointer-events:none}
 .tl-holiday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--surface);border-radius:10px;z-index:2}
@@ -1029,14 +1039,19 @@ function panelHTML(now,occ,sel){
   var head='<div class="day-head"><h2>'+longDate(sd)+'</h2>';
   var strip='';
   if(special){
-    strip='<div class="hol-strip '+special.kind+'">'+
-      (special.kind==='holiday'?'Holiday \u2013 '+esc(special.label):'Exam period \u2013 '+esc(special.label))+
-      ' <span>&middot;</span> <a href="'+CAL_URL+'" target="_blank" rel="noopener">Academic Calendar</a></div>';
+    strip='<div class="hol-box '+special.kind+'">'+
+      '<div class="hol-ic" aria-hidden="true">'+(special.kind==='holiday'?'&#127881;':'&#128221;')+'</div>'+
+      '<div><p class="hol-kicker">'+(special.kind==='holiday'?'Holiday':'Exam period')+'</p>'+
+      '<p class="hol-title">'+esc(special.label)+'</p>'+
+      '<p class="hol-sub">As per the <a href="'+CAL_URL+'" target="_blank" rel="noopener">FY Academic Calendar 2026-27</a></p>'+
+      '</div></div>';
   }
   var body;
   if(special&&special.kind==='holiday'){
     head+='</div>';
-    body=strip+'<div class="empty"><p class="empty-title">No classes today</p><p class="empty-body">Holiday for '+esc(special.label)+', as per the Academic Calendar.</p></div>';
+    var nxH=occ.find(function(o){return o.offset>=sel;});
+    var nextLine=nxH?'<p class="empty-body">Next class: '+SUBJ[nxH.sub].name+' on '+(nxH.offset===sel+1?'tomorrow':DAYS[nxH.date.getDay()])+' at '+fmtT(nxH.s)+'.</p>':'';
+    body=strip+'<div class="empty">'+nextLine+'</div>';
   }else if(sl.length){
     var last=Math.max.apply(null,sl.map(function(x){return x.e}));
     head+='<p class="day-sum">'+sl.length+(sl.length===1?' class':' classes')+', '+fmtT(sl[0].s)+' to '+fmtT(last)+'</p></div>';
