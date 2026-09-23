@@ -146,6 +146,20 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(21px,4.4vw,26px);l
 .empty-body{margin:8px 0 0;color:var(--muted)}
 .btn{margin-top:12px;padding:7px 16px;min-height:38px;border:1px solid var(--ink);border-radius:10px;background:var(--ink);color:var(--surface);font-weight:600;cursor:pointer}
 
+/* holiday / exam-window overlay */
+.hol-strip{display:flex;align-items:center;gap:8px;margin:10px 2px 0;padding:9px 12px;border-radius:10px;font-size:12.5px;font-weight:600}
+.hol-strip.holiday{background:rgba(217,83,79,.12);color:#a5352f}
+.hol-strip.exam{background:rgba(217,150,20,.14);color:#8a5d00}
+.hol-strip a{color:inherit;text-decoration:underline;text-underline-offset:2px;font-weight:600}
+.day-off{position:relative}
+.day-off::before{content:'';position:absolute;inset:0;border-radius:12px;background:repeating-linear-gradient(135deg,rgba(0,0,0,.035) 0 10px,transparent 10px 20px);pointer-events:none}
+.tl-holiday{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;background:var(--surface);border-radius:10px;z-index:2}
+.tl-holiday p{margin:0;padding:0 20px;color:var(--muted);font-weight:600;font-size:13px}
+.wk-col.hol{background-color:rgba(217,83,79,.08)}
+.wk-col.exam-day{background-color:rgba(217,150,20,.08)}
+.wk-hol-label{position:absolute;top:6px;left:6px;right:6px;font-size:10px;font-weight:700;color:#a5352f;line-height:1.2;z-index:1}
+.wk-col.exam-day .wk-hol-label{color:#8a5d00}
+
 /* week */
 .weekp{margin-top:12px}
 .weekp-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;gap:2px 10px;margin:2px 2px 8px}
@@ -795,6 +809,38 @@ var sameDay=function(a,b){return a.getFullYear()===b.getFullYear()&&a.getMonth()
 var mins=function(d){return d.getHours()*60+d.getMinutes()};
 var shortDate=function(d){return d.getDate()+' '+MONS[d.getMonth()].slice(0,3)};
 var longDate=function(d){return DAYS[d.getDay()]+', '+d.getDate()+' '+MONS[d.getMonth()]};
+var ymd=function(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+
+/* ---------- Holidays & exam windows (FY Academic Calendar 2026-27, Sem I) ---------- */
+var CAL_URL='https://www.vit.edu/wp-content/uploads/2026/09/FY-Academic-Calendar-2026-27.pdf';
+var HOLIDAYS={
+  '2026-09-18':'Gauri Pujan',
+  '2026-09-25':'Anant Chaturdashi',
+  '2026-10-02':'Mahatma Gandhi Jayanti',
+  '2026-10-20':'Vijaya Dashami / Dasara',
+  '2026-11-06':'Diwali',
+  '2026-11-07':'Diwali',
+  '2026-11-08':'Diwali',
+  '2026-11-09':'Diwali',
+  '2026-11-10':'Diwali',
+  '2026-11-11':'Diwali',
+  '2026-11-12':'Diwali',
+  '2026-11-24':'Gurunanak Jayanti',
+  '2026-12-25':'Christmas'
+};
+var EXAM_WINDOWS=[
+  {from:'2026-11-18',to:'2026-11-23',label:'Mid-Semester Examination and Reviews'},
+  {from:'2027-01-04',to:'2027-01-16',label:'Laboratory Assessments, In-Semester Reviews, Course Project Examination'},
+  {from:'2027-01-21',to:'2027-02-02',label:'End-Semester Examination'}
+];
+function holidayFor(d){return HOLIDAYS[ymd(d)]||null}
+function examFor(d){
+  var k=ymd(d);
+  for(var i=0;i<EXAM_WINDOWS.length;i++){var w=EXAM_WINDOWS[i];if(k>=w.from&&k<=w.to) return w.label;}
+  return null;
+}
+// one line for a day: holiday wins over exam window if both somehow overlap
+function specialFor(d){var h=holidayFor(d);if(h) return {kind:'holiday',label:h};var e=examFor(d);if(e) return {kind:'exam',label:e};return null;}
 
 function fmtT(m){
   var h=Math.floor(m/60),mm=m%60;
@@ -836,6 +882,7 @@ function occurrences(now,days){
   for(var i=0;i<days;i++){
     var d=dayStart(now,i);
     if(!inRange(d)) continue;
+    if(holidayFor(d)) continue;   // no classes on a listed holiday
     forDay(d.getDay(),st.batch).forEach(function(s){
       var o=Object.assign({},s);
       o.date=d;o.offset=i;
@@ -865,6 +912,15 @@ function whenWord(o){
   return DAYS[o.date.getDay()].slice(0,3)+' at '+fmtT(o.s);
 }
 function heroModel(now,occ,cur,nxt){
+  var todaySp=specialFor(now);
+  if(todaySp&&todaySp.kind==='holiday'&&!cur){
+    var focus0=nxt;
+    return {color:'#a5352f',state:'idle',html:
+      '<p class="status">Holiday today</p>'+
+      '<p class="subject" style="margin-top:2px">'+esc(todaySp.label)+'</p>'+
+      '<p class="meta" style="margin-top:6px"><span><a href="'+CAL_URL+'" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">Academic Calendar</a></span></p>'+
+      (focus0?'<p class="then">Next class '+whenWord(focus0)+': '+SUBJ[focus0.sub].name+'.</p>':'')};
+  }
   var focus=cur||nxt;
   if(!focus){
     return {color:'#5B6478',state:'idle',html:
@@ -960,20 +1016,31 @@ function panelHTML(now,occ,sel){
   for(var i=0;i<7;i++){
     var d=dayStart(now,i);
     var list=inRange(d)?forDay(d.getDay(),st.batch):[];
+    var sp=specialFor(d);
     var lbl=i===0?'Today':i===1?'Tomorrow':DAYS[d.getDay()];
     tabs+='<button type="button" class="tab'+(list.length?'':' free')+'" data-act="day" data-off="'+i+'" data-key="day-'+i+'" aria-pressed="'+(i===sel)+'">'+
       '<span class="t1">'+(i===0?'<i class="tdot"></i>':'')+lbl+'</span>'+
       '<span class="t2">'+shortDate(d)+'</span>'+
-      '<span class="t3">'+(list.length?list.length+(list.length===1?' class':' classes'):'No classes')+'</span></button>';
+      '<span class="t3">'+(sp?sp.kind==='holiday'?'Holiday':'Exams':(list.length?list.length+(list.length===1?' class':' classes'):'No classes'))+'</span></button>';
   }
   var sd=dayStart(now,sel);
   var sl=inRange(sd)?forDay(sd.getDay(),st.batch):[];
+  var special=specialFor(sd);
   var head='<div class="day-head"><h2>'+longDate(sd)+'</h2>';
+  var strip='';
+  if(special){
+    strip='<div class="hol-strip '+special.kind+'">'+
+      (special.kind==='holiday'?'Holiday \u2013 '+esc(special.label):'Exam period \u2013 '+esc(special.label))+
+      ' <span>&middot;</span> <a href="'+CAL_URL+'" target="_blank" rel="noopener">Academic Calendar</a></div>';
+  }
   var body;
-  if(sl.length){
+  if(special&&special.kind==='holiday'){
+    head+='</div>';
+    body=strip+'<div class="empty"><p class="empty-title">No classes today</p><p class="empty-body">Holiday for '+esc(special.label)+', as per the Academic Calendar.</p></div>';
+  }else if(sl.length){
     var last=Math.max.apply(null,sl.map(function(x){return x.e}));
     head+='<p class="day-sum">'+sl.length+(sl.length===1?' class':' classes')+', '+fmtT(sl[0].s)+' to '+fmtT(last)+'</p></div>';
-    body=timelineHTML(sl,sel===0,now,sd);
+    body=strip+timelineHTML(sl,sel===0,now,sd);
   }else{
     head+='</div>';
     var nx=occ.find(function(o){return o.offset>sel});
@@ -986,7 +1053,7 @@ function panelHTML(now,occ,sel){
     }else if(!inRange(sd)){
       txt='This date is outside the timetable.';
     }
-    body='<div class="empty"><p class="empty-title">'+txt.replace(/\.$/,'')+'</p><p class="empty-body">'+next+'</p>'+btn+'</div>';
+    body=strip+'<div class="empty"><p class="empty-title">'+txt.replace(/\.$/,'')+'</p><p class="empty-body">'+next+'</p>'+btn+'</div>';
   }
   return '<div class="days" aria-label="Choose a day">'+tabs+'</div>'+head+body;
 }
@@ -1013,12 +1080,15 @@ function weekHTML(now){
   cols.forEach(function(c){
     var isT=sameDay(c.d,now);if(isT)hasToday=true;
     head+='<div class="wk-h"'+(isT?' aria-current="date"':'')+'><span>'+(isT?'<i class="tdot"></i>':'')+DAYS[c.d.getDay()].slice(0,3)+'</span><small>'+shortDate(c.d)+'</small></div>';
+    var sp=specialFor(c.d);
     var blks=c.list.map(function(x){
       var state='';
       if(isT){ if(x.e<=nowM) state='past'; else if(x.s<=nowM) state='live'; }
       return blockHTML(x,{state:state,sm:true,date:c.d.getTime(),top:'calc('+y(x.s)+' + 2px)',h:'calc(var(--hrw)*'+((x.e-x.s)/60).toFixed(4)+' - 4px)'});
     }).join('');
-    body+='<div class="wk-col'+(isT?' today':'')+'"><ol class="blks">'+blks+'</ol></div>';
+    var colCls='wk-col'+(isT?' today':'')+(sp?sp.kind==='holiday'?' hol':' exam-day':'');
+    var label=sp?'<div class="wk-hol-label">'+(sp.kind==='holiday'?'Holiday':'Exams')+'</div>':'';
+    body+='<div class="'+colCls+'">'+label+'<ol class="blks">'+(sp&&sp.kind==='holiday'?'':blks)+'</ol></div>';
   });
   var line='';
   if(hasToday&&nowM>=h0*60&&nowM<=h1*60){
@@ -1058,7 +1128,7 @@ function render(){
   document.title=headTitle+' timetable';
   $('#campusLine').innerHTML='<svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 14.5S13 10.2 13 6.5a5 5 0 10-10 0C3 10.2 8 14.5 8 14.5z"/><circle cx="8" cy="6.5" r="1.8"/></svg><span>'+campusFor(st.branch)+'</span>';
   $('#subLine').textContent='First year, semester 1. Timetable version '+CUR.version+', valid '+fmtDateLong(CUR.effFrom)+' to '+fmtDateLong(CUR.effTo)+'.';
-  $('#footTxt').textContent="Built from timetable Form FF957 for First Year "+CUR.pdf+", version "+CUR.version+", effective "+fmtDateLong(CUR.effFrom)+" to "+fmtDateLong(CUR.effTo)+". Class blocks show faculty initials; tap a class for full names from the faculty list on page 2 of the PDF, pulled live from the TimeTable_VIT database. Holidays and notices aren't included, so check announcements before you head out.";
+  $('#footTxt').textContent="Built from timetable Form FF957 for First Year "+CUR.pdf+", version "+CUR.version+", effective "+fmtDateLong(CUR.effFrom)+" to "+fmtDateLong(CUR.effTo)+". Class blocks show faculty initials; tap a class for full names from the faculty list on page 2 of the PDF, pulled live from the TimeTable_VIT database. Holidays and exam windows follow the FY Academic Calendar 2026-27, Sem I.";
   $('#clockTime').textContent=fmtT(mins(now));
   $('#clockDate').textContent=DAYS[now.getDay()]+', '+now.getDate()+' '+MONS[now.getMonth()]+' '+now.getFullYear();
   document.querySelectorAll('[data-act="batch"]').forEach(function(b){b.setAttribute('aria-pressed',String(b.getAttribute('data-v')===st.batch))});
@@ -1503,6 +1573,8 @@ function renderAdmin(){
   var ao=d.about_opens||{};
   html+='<p class="adm-h">About Me opens</p>';
   html+='<div class="adm-kpis">'+[
+    {l:'Live now',n:ao.live_5m||0,u:'unique'},
+    {l:'1 hour',n:ao.v_1h||0,u:(ao.u_1h||0)+' uniq'},
     {l:'24 hours',n:ao.v_24h||0,u:(ao.u_24h||0)+' uniq'},
     {l:'7 days',n:ao.v_7d||0,u:(ao.u_7d||0)+' uniq'},
     {l:'30 days',n:ao.v_30d||0,u:(ao.u_30d||0)+' uniq'},
