@@ -1689,6 +1689,7 @@ function openAdmin(){
   var dlg=$('#admin');
   if(typeof dlg.showModal==='function') dlg.showModal(); else dlg.setAttribute('open','');
   if(ADM.pin) loadAdmin(); else renderPinForm();
+  store.set(SURVEY_DONE_LS,'');   // reset survey so it's asked again after opening admin
 }
 function closeAdmin(){
   var dlg=$('#admin');
