@@ -1590,7 +1590,9 @@ if('serviceWorker' in navigator){
 /* ---------- Quick survey: have English classes started? (anon, skippable, asked once) ---------- */
 var SURVEY_KEY='english_classes_sem1';
 var SURVEY_DONE_LS='tt-survey-'+SURVEY_KEY+'-done';
+var SURVEY_EXPIRES=new Date('2026-09-28T23:59:59');
 function surveyAnswered(){ return !!store.get(SURVEY_DONE_LS,''); }
+function surveyExpired(){ return new Date()>SURVEY_EXPIRES; }
 function surveySubmit(answer,otherText){
   try{
     if(location.protocol==='file:') return;
@@ -1605,6 +1607,7 @@ function surveySubmit(answer,otherText){
 }
 function showSurveyBar(){
   if(surveyAnswered()) return;
+  if(surveyExpired()) return;
   if(!$('#picker').hidden) return;        // don't interrupt first-time class selection
   if(!$('#installBar').hidden) return;    // don't stack on top of the install prompt
   var el=$('#surveyBar');if(!el) return;
@@ -1628,8 +1631,7 @@ function surveyShowResults(mine){
     '<div class="sres-row"><div class="sres-top"><span class="sres-lbl'+(mine==='yes'?' mine':'')+'">Yes</span><span class="sres-pct" id="sresYesPct">\u2026</span></div>'+
     '<div class="sres-track"><span class="sres-fill yes" id="sresYesFill"></span></div></div>'+
     '<div class="sres-row"><div class="sres-top"><span class="sres-lbl'+(mine==='no'?' mine':'')+'">No</span><span class="sres-pct" id="sresNoPct">\u2026</span></div>'+
-    '<div class="sres-track"><span class="sres-fill no" id="sresNoFill"></span></div></div>'+
-    '<p class="sres-note" id="sresNote">Loading results\u2026</p>';
+    '<div class="sres-track"><span class="sres-fill no" id="sresNoFill"></span></div></div>';
   try{
     if(location.protocol==='file:') throw 0;
     fetch(SUPA_URL+'/rest/v1/survey_responses?survey_key=eq.'+encodeURIComponent(SURVEY_KEY)+'&answer=in.(yes,no)&select=answer',{
@@ -1641,19 +1643,14 @@ function surveyShowResults(mine){
       var yesPct=total?Math.round((yes/total)*100):0;
       var noPct=total?100-yesPct:0;
       requestAnimationFrame(function(){
-        var yf=$('#sresYesFill'),nf=$('#sresNoFill'),yp=$('#sresYesPct'),np=$('#sresNoPct'),note=$('#sresNote');
+        var yf=$('#sresYesFill'),nf=$('#sresNoFill'),yp=$('#sresYesPct'),np=$('#sresNoPct');
         if(yf) yf.style.width=yesPct+'%';
         if(nf) nf.style.width=noPct+'%';
         if(yp) yp.textContent=yesPct+'%';
         if(np) np.textContent=noPct+'%';
-        if(note) note.textContent=total+' response'+(total===1?'':'s')+' so far';
       });
-    }).catch(function(){
-      var note=$('#sresNote');if(note) note.textContent='Thanks for the response!';
-    });
-  }catch(e){
-    var note=$('#sresNote');if(note) note.textContent='Thanks for the response!';
-  }
+    }).catch(function(){});
+  }catch(e){}
   setTimeout(hideSurveyBar,4200);
 }
 function surveyOpenOther(){
