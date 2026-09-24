@@ -198,21 +198,48 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(21px,4.4vw,26px);l
 
 /* install-app banner */
 .install-bar{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px));
-  display:flex;flex-direction:column;gap:12px;background:var(--surface);border-top:1px solid var(--line);
-  box-shadow:0 -10px 30px rgba(8,12,30,.18);animation:installUp .28s ease-out}
-.install-card{display:flex;gap:12px;align-items:center}
+  display:flex;flex-direction:column;gap:12px;pointer-events:none}
+.install-bar>*{pointer-events:auto}
+.install-card{display:flex;gap:12px;align-items:center;background:var(--surface);border-top:1px solid var(--line);
+  border-radius:16px 16px 0 0;padding:14px;margin:0 -14px -14px;box-shadow:0 -10px 30px rgba(8,12,30,.18);animation:installUp .28s ease-out}
 .install-icon{flex:none;width:44px;height:44px;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(8,12,30,.25)}
 .install-icon img{display:block;width:100%;height:100%}
 .install-txt{min-width:0}
 .install-title{margin:0;font-weight:700;font-size:14.5px;color:var(--ink)}
 .install-sub{margin:2px 0 0;color:var(--muted);font-size:12.5px;line-height:1.4}
-.install-actions{display:flex;gap:8px}
+.install-actions{display:flex;gap:8px;background:var(--surface);padding:0 14px 14px;margin:0 -14px;border-radius:0 0 16px 16px}
 .install-actions .btn,.install-actions .btn2{flex:1;margin:0;min-height:42px;padding:8px 14px;font-size:13.5px}
 @keyframes installUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @media (min-width:560px){
-  .install-bar{left:auto;right:16px;bottom:16px;max-width:380px;border:1px solid var(--line);border-radius:16px}
+  .install-bar{left:auto;right:16px;bottom:16px;max-width:380px;padding:0}
+  .install-card{border:1px solid var(--line);border-top:1px solid var(--line);border-radius:16px 16px 0 0;margin:0}
+  .install-actions{border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;margin:0}
 }
-@media (prefers-reduced-motion:reduce){.install-bar{animation:none}}
+@media (prefers-reduced-motion:reduce){.install-card{animation:none}}
+
+/* boot loading screen (shown briefly for returning visitors while Supabase loads) */
+#loadScreen{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:18px;background:var(--surface);padding:24px;text-align:center;transition:opacity .35s ease}
+#loadScreen.out{opacity:0;pointer-events:none}
+.ls-ring{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ink);animation:lsSpin .8s linear infinite}
+@keyframes lsSpin{to{transform:rotate(360deg)}}
+.ls-msg{margin:0;font-size:14px;color:var(--muted);max-width:36ch;min-height:1.4em;transition:opacity .25s ease}
+.ls-msg.fade{opacity:0}
+.ls-brand{margin:0;font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink)}
+@media (prefers-reduced-motion:reduce){.ls-ring{animation:none;border-top-color:var(--line)}}
+
+/* holiday intro splash */
+#holidayIntro{position:fixed;inset:0;z-index:81;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;text-align:center;padding:24px;background:linear-gradient(160deg,#d9534f,#a5352f);color:#fff;
+  animation:hiIn .4s ease-out;transition:opacity .4s ease,transform .4s ease}
+#holidayIntro.out{opacity:0;transform:scale(1.04);pointer-events:none}
+@keyframes hiIn{from{opacity:0;transform:scale(.96)}to{opacity:1;transform:scale(1)}}
+.hi-emoji{font-size:56px;line-height:1;animation:hiPop .6s ease-out}
+@keyframes hiPop{0%{transform:scale(.4) rotate(-8deg)}60%{transform:scale(1.12) rotate(4deg)}100%{transform:scale(1) rotate(0)}}
+.hi-kicker{margin:6px 0 0;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;opacity:.85}
+.hi-title{margin:2px 0 0;font-family:var(--display);font-weight:800;font-size:clamp(26px,7vw,34px);line-height:1.15}
+.hi-sub{margin:4px 0 0;font-size:13.5px;opacity:.9}
+@media (prefers-reduced-motion:reduce){#holidayIntro,.hi-emoji{animation:none}}
 
 /* phones: compact chrome, week grid fits the screen (no sideways scroll) */
 @media (max-width:600px){
@@ -519,6 +546,17 @@ dialog#admin::backdrop{background:rgba(12,16,32,.6)}
   </footer>
   </div>
 
+  <div id="loadScreen" hidden>
+    <div class="ls-ring" aria-hidden="true"></div>
+    <p class="ls-msg" id="lsMsg">Loading your timetable&hellip;</p>
+    <p class="ls-brand">VIT Pune &middot; FY Timetable</p>
+  </div>
+  <div id="holidayIntro" hidden>
+    <div class="hi-emoji" id="hiEmoji" aria-hidden="true">&#127881;</div>
+    <p class="hi-kicker">Holiday today</p>
+    <p class="hi-title" id="hiTitle">Enjoy!</p>
+    <p class="hi-sub">No classes &mdash; have a great day off.</p>
+  </div>
   <section id="picker" class="picker" hidden aria-labelledby="pkTitle">
     <div class="pk-card">
       <div class="pk-top">
@@ -1334,9 +1372,13 @@ function openPicker(cancelable){
   window.scrollTo(0,0);
   if(cancelable) $('#pkTitle').focus({preventScroll:true});
 }
-function closePicker(){
+function closePicker(fromBoot){
   $('#picker').hidden=true;$('#view').hidden=false;
   centerTab=true;render();
+  if(fromBoot){
+    stopLoadScreen();
+    maybeShowHolidayIntro();
+  }
   var c=document.querySelector('.chg');
   if(c) c.focus({preventScroll:true});
 }
@@ -1353,6 +1395,7 @@ function pickerAct(a,b){
       st.batch=goBatch;
       store.set('tt-branch',goBranch);store.set('tt-div',goDiv);store.set('tt-batch',goBatch);
       closePicker();
+      maybeShowHolidayIntro();
     });
     return;
   }
@@ -1635,9 +1678,74 @@ document.addEventListener('submit',function(e){
   }
 });
 
+/* ---------- Boot loading screen ---------- */
+var LOAD_QUOTES=[
+  'Loading your timetable\u2026',
+  'Pulling classes from the database\u2026',
+  'Waking up Supabase\u2026',
+  'Fetching today\u2019s schedule\u2026',
+  'Lining up your classes\u2026',
+  'Checking for holidays\u2026',
+  'Syncing with the Academic Calendar\u2026',
+  'Almost there\u2026',
+  'Finding your faculty list\u2026',
+  'Getting your day sorted\u2026',
+  'Dusting off the timetable\u2026',
+  'One sec, talking to the server\u2026',
+  'Reading your saved class\u2026',
+  'Brewing your schedule\u2026',
+  'Counting the periods\u2026'
+];
+var lsTimer=null,lsIdx=0;
+function startLoadScreen(){
+  var el=$('#loadScreen');if(!el) return;
+  el.hidden=false;el.classList.remove('out');
+  lsIdx=Math.floor(Math.random()*LOAD_QUOTES.length);
+  $('#lsMsg').textContent=LOAD_QUOTES[lsIdx];
+  lsTimer=setInterval(function(){
+    var msg=$('#lsMsg');if(!msg) return;
+    msg.classList.add('fade');
+    setTimeout(function(){
+      lsIdx=(lsIdx+1)%LOAD_QUOTES.length;
+      msg.textContent=LOAD_QUOTES[lsIdx];
+      msg.classList.remove('fade');
+    },250);
+  },900);
+}
+function stopLoadScreen(){
+  if(lsTimer){clearInterval(lsTimer);lsTimer=null;}
+  var el=$('#loadScreen');if(!el||el.hidden) return;
+  el.classList.add('out');
+  setTimeout(function(){el.hidden=true;},380);
+}
+
+/* ---------- Holiday intro splash ---------- */
+var HOLIDAY_EMOJI={holiday:'\uD83C\uDF89'};
+function maybeShowHolidayIntro(){
+  try{
+    var now=new Date();
+    var sp=typeof specialFor==='function'?specialFor(now):null;
+    if(!sp||sp.kind!=='holiday') return;
+    var key='tt-hol-seen-'+ymd(now);
+    if(store.get(key,'')) return;   // already shown once today on this device
+    store.set(key,'1');
+    var el=$('#holidayIntro');if(!el) return;
+    $('#hiTitle').textContent=sp.label;
+    el.hidden=false;
+    setTimeout(function(){
+      el.classList.add('out');
+      setTimeout(function(){el.hidden=true;},420);
+    },2000);
+  }catch(e){}
+}
+
 function boot(){
-  $('#view').hidden=true;$('#picker').hidden=false;$('#pkCancel').hidden=true;
-  showPickerStatus('Loading classes\u2026');
+  $('#view').hidden=true;$('#picker').hidden=true;$('#pkCancel').hidden=true;
+  // saved choice: branch + division + batch. If we already know it, show the animated
+  // loading screen instead of flashing the bare picker form while data is fetched.
+  var sBr0=store.get('tt-branch',''),sDv0=store.get('tt-div',''),sBt0=store.get('tt-batch','');
+  var knownClass=!!(sBt0&&(sBr0&&sDv0||!sBr0&&!sDv0));
+  if(knownClass) startLoadScreen(); else { $('#picker').hidden=false; showPickerStatus('Loading classes\u2026'); }
   loadDivisions().then(function(){
     // saved choice: branch + division + batch. The earlier CSSE-C-only page saved just a batch, so treat that as CSSE-C.
     var sBr=store.get('tt-branch',''),sDv=store.get('tt-div','');
@@ -1646,13 +1754,17 @@ function boot(){
     if(BATCHES.indexOf(rawBatch)<0) rawBatch='';
     if(rawBatch){
       return setClass(sBr,sDv).then(function(ok){
-        if(ok){ st.batch=rawBatch; closePicker(); }
-        else openPicker(false);
+        if(ok){ st.batch=rawBatch; closePicker(true); }
+        else { stopLoadScreen(); $('#picker').hidden=false; openPicker(false); }
       });
     }
+    stopLoadScreen();
+    $('#picker').hidden=false;
     openPicker(false);             // first visit: ask for branch, division and batch
   }).catch(function(e){
     console.error(e);
+    stopLoadScreen();
+    $('#picker').hidden=false;
     showPickerStatus('Could not load the class list. Check your connection and reload the page.');
   }).then(function(){
     setInterval(tick,1000);
