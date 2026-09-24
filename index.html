@@ -1595,15 +1595,15 @@ function surveyAnswered(){ return !!store.get(SURVEY_DONE_LS,''); }
 function surveyExpired(){ return new Date()>SURVEY_EXPIRES; }
 function surveySubmit(answer,otherText){
   try{
-    if(location.protocol==='file:') return;
+    if(location.protocol==='file:') return Promise.resolve();
     var row={survey_key:SURVEY_KEY,answer:answer};
     if(answer==='other') row.other_text=(otherText||'').trim().slice(0,200)||null;
-    fetch(SUPA_URL+'/rest/v1/survey_responses',{
+    return fetch(SUPA_URL+'/rest/v1/survey_responses',{
       method:'POST',
       headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json',Prefer:'return=minimal'},
       body:JSON.stringify(row),keepalive:true
     }).catch(function(){});
-  }catch(e){}
+  }catch(e){ return Promise.resolve(); }
 }
 function showSurveyBar(){
   if(surveyAnswered()) return;
@@ -1615,10 +1615,11 @@ function showSurveyBar(){
 }
 function hideSurveyBar(){ var el=$('#surveyBar');if(el) el.hidden=true; }
 function surveyDone(answer,otherText){
-  surveySubmit(answer,otherText);
+  var submitP=surveySubmit(answer,otherText);
   store.set(SURVEY_DONE_LS,'1');
-  if(answer==='yes'||answer==='no'){ surveyShowResults(answer); }
-  else { hideSurveyBar(); }
+  if(answer==='yes'||answer==='no'){
+    Promise.resolve(submitP).then(function(){ surveyShowResults(answer); });
+  } else { hideSurveyBar(); }
 }
 /* fetch current yes/no split and animate it in, then auto-dismiss */
 function surveyShowResults(mine){
@@ -1634,11 +1635,12 @@ function surveyShowResults(mine){
     '<div class="sres-track"><span class="sres-fill no" id="sresNoFill"></span></div></div>';
   try{
     if(location.protocol==='file:') throw 0;
-    fetch(SUPA_URL+'/rest/v1/survey_responses?survey_key=eq.'+encodeURIComponent(SURVEY_KEY)+'&answer=in.(yes,no)&select=answer',{
-      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY}
-    }).then(function(r){ return r.ok?r.json():[]; }).then(function(rows){
-      var yes=0,no=0;
-      (rows||[]).forEach(function(r){ if(r.answer==='yes') yes++; else if(r.answer==='no') no++; });
+    fetch(SUPA_URL+'/rest/v1/rpc/survey_counts',{
+      method:'POST',
+      headers:{apikey:SUPA_KEY,Authorization:'Bearer '+SUPA_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify({p_survey_key:SURVEY_KEY})
+    }).then(function(r){ return r.ok?r.json():{yes:0,no:0}; }).then(function(j){
+      var yes=(j&&j.yes)||0,no=(j&&j.no)||0;
       var total=yes+no;
       var yesPct=total?Math.round((yes/total)*100):0;
       var noPct=total?100-yesPct:0;
