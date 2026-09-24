@@ -217,16 +217,17 @@ h2{font-family:var(--display);font-weight:800;font-size:clamp(21px,4.4vw,26px);l
 }
 @media (prefers-reduced-motion:reduce){.install-card{animation:none}}
 
-/* boot loading screen (shown briefly for returning visitors while Supabase loads) */
+/* boot loading screen (shown briefly for returning visitors while data loads) */
 #loadScreen{position:fixed;inset:0;z-index:80;display:flex;flex-direction:column;align-items:center;justify-content:center;
-  gap:18px;background:var(--surface);padding:24px;text-align:center;transition:opacity .35s ease}
-#loadScreen.out{opacity:0;pointer-events:none}
+  gap:18px;background:var(--surface);padding:24px;text-align:center;transition:opacity .6s cubic-bezier(.4,0,.2,1),transform .6s cubic-bezier(.4,0,.2,1)}
+#loadScreen.out{opacity:0;transform:scale(1.015);pointer-events:none}
 .ls-ring{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ink);animation:lsSpin .8s linear infinite}
 @keyframes lsSpin{to{transform:rotate(360deg)}}
-.ls-msg{margin:0;font-size:14px;color:var(--muted);max-width:36ch;min-height:1.4em;transition:opacity .25s ease}
-.ls-msg.fade{opacity:0}
+.ls-msg{margin:0;font-size:14px;color:var(--muted);max-width:36ch;min-height:1.4em;transition:opacity .55s cubic-bezier(.4,0,.2,1),transform .55s cubic-bezier(.4,0,.2,1)}
+.ls-msg.fade{opacity:0;transform:translateY(3px)}
 .ls-brand{margin:0;font-family:var(--display);font-weight:800;font-size:15px;color:var(--ink)}
-@media (prefers-reduced-motion:reduce){.ls-ring{animation:none;border-top-color:var(--line)}}
+.ls-about{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);transition:background-color .2s ease,opacity .6s cubic-bezier(.4,0,.2,1)}
+@media (prefers-reduced-motion:reduce){.ls-ring{animation:none;border-top-color:var(--line)}#loadScreen,#loadScreen.out,.ls-msg,.ls-msg.fade{transition:opacity .2s ease}}
 
 /* holiday intro splash */
 #holidayIntro{position:fixed;inset:0;z-index:81;display:flex;flex-direction:column;align-items:center;justify-content:center;
@@ -550,6 +551,7 @@ dialog#admin::backdrop{background:rgba(12,16,32,.6)}
     <div class="ls-ring" aria-hidden="true"></div>
     <p class="ls-msg" id="lsMsg">Loading your timetable&hellip;</p>
     <p class="ls-brand">VIT Pune &middot; FY Timetable</p>
+    <button type="button" class="chg ls-about" data-act="about-open"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="5.3" r="2.6"/><path d="M2.6 13.2c.9-3 3-4.4 5.4-4.4s4.5 1.4 5.4 4.4"/></svg>About Me</button>
   </div>
   <div id="holidayIntro" hidden>
     <div class="hi-emoji" id="hiEmoji" aria-hidden="true">&#127881;</div>
@@ -1681,8 +1683,7 @@ document.addEventListener('submit',function(e){
 /* ---------- Boot loading screen ---------- */
 var LOAD_QUOTES=[
   'Loading your timetable\u2026',
-  'Pulling classes from the database\u2026',
-  'Waking up Supabase\u2026',
+  'Pulling up your classes\u2026',
   'Fetching today\u2019s schedule\u2026',
   'Lining up your classes\u2026',
   'Checking for holidays\u2026',
@@ -1691,10 +1692,19 @@ var LOAD_QUOTES=[
   'Finding your faculty list\u2026',
   'Getting your day sorted\u2026',
   'Dusting off the timetable\u2026',
-  'One sec, talking to the server\u2026',
   'Reading your saved class\u2026',
   'Brewing your schedule\u2026',
-  'Counting the periods\u2026'
+  'Counting the periods\u2026',
+  'Untangling the room numbers\u2026',
+  'Waking up the timetable gremlins\u2026',
+  'Sharpening pencils\u2026',
+  'Reticulating splines, sort of\u2026',
+  'Convincing the clock to cooperate\u2026',
+  'Making sure Monday still exists\u2026',
+  'Politely asking the server for data\u2026',
+  'Herding your classes into order\u2026',
+  'Double-checking room numbers\u2026',
+  'Warming up the coffee, one sec\u2026'
 ];
 var lsTimer=null,lsIdx=0;
 function startLoadScreen(){
@@ -1709,14 +1719,14 @@ function startLoadScreen(){
       lsIdx=(lsIdx+1)%LOAD_QUOTES.length;
       msg.textContent=LOAD_QUOTES[lsIdx];
       msg.classList.remove('fade');
-    },250);
-  },900);
+    },550);
+  },3400);
 }
 function stopLoadScreen(){
   if(lsTimer){clearInterval(lsTimer);lsTimer=null;}
   var el=$('#loadScreen');if(!el||el.hidden) return;
   el.classList.add('out');
-  setTimeout(function(){el.hidden=true;},380);
+  setTimeout(function(){el.hidden=true;},600);
 }
 
 /* ---------- Holiday intro splash ---------- */
