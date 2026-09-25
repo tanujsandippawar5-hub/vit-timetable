@@ -632,26 +632,14 @@ dialog#admin::backdrop{background:rgba(12,16,32,.6)}
       </div>
       <div class="terms-body">
         <div class="about-profile">
-          <div class="about-avatar" aria-hidden="true">VB</div>
+          <div class="about-avatar" aria-hidden="true">TP</div>
           <div>
-            <p class="about-name">Vedant Bhat</p>
-            <p class="about-meta">VIT Pune &rsquo;30 &middot; FY, CSE(SE)-C</p>
+            <p class="about-name">Tanuj Pawar</p>
+            <p class="about-meta">VIT Pune &rsquo;30 &middot; FY, CSE-J</p>
           </div>
         </div>
         <div class="about-links">
-          <a class="about-link" href="https://www.linkedin.com/in/vedant-bhat28" target="_blank" rel="noopener" data-act="ext-link" data-label="linkedin">LinkedIn</a>
-          <a class="about-link" href="https://github.com/vedantbhat28" target="_blank" rel="noopener" data-act="ext-link" data-label="github">GitHub</a>
-          <a class="about-link" href="https://www.instagram.com/vedant_bhat28?stkn=MWhteWpyM3d6N2M3Zg==" target="_blank" rel="noopener" data-act="ext-link" data-label="instagram">Instagram</a>
-        </div>
-        <p class="about-section-h">Other projects</p>
-        <p class="about-note">All built with the help of AI.</p>
-        <div class="about-proj">
-          <p class="about-proj-name"><a href="https://cetkit.github.io/cetkit" target="_blank" rel="noopener" data-act="ext-link" data-label="cetkit">CETkit</a> <span class="tag">50+ users</span></p>
-          <p class="about-proj-d">The ultimate practice platform for MHT-CET aspirants.</p>
-        </div>
-        <div class="about-proj">
-          <p class="about-proj-name"><a href="https://vedantbhat28.github.io/cppkit" target="_blank" rel="noopener" data-act="ext-link" data-label="cppkit">CPPkit</a> <span class="tag">Prototype</span></p>
-          <p class="about-proj-d">An early, work-in-progress build.</p>
+          <a class="about-link" href="https://www.instagram.com/tanuj.pawar_05/" target="_blank" rel="noopener" data-act="ext-link" data-label="instagram">Instagram</a>
         </div>
       </div>
     </div>
@@ -838,11 +826,135 @@ function branchLabel(code){ return BRANCH_DISPLAY[code]||code; }
 var BIBWEWADI=['CS','IT','CSAIML','CSAI'];
 function campusFor(code){ return BIBWEWADI.indexOf(code)>-1?'Bibwewadi Campus':'Kondhwa Campus'; }
 
-/* CLASSES is populated from tt_divisions at boot (metadata only), then each division's
-   sessions/faculty are fetched from tt_sessions on demand, the first time it's opened, and cached. */
+/* CLASSES: restricted to CS branch, J division only, per site owner's request.
+   The J-division timetable below is entered by hand from the official EduPlusCampus
+   PDF (Division: FY CS-J, W.E.F 15-Sep-2026 to 10-Jan-2027) rather than fetched live
+   from Supabase, since the live data for this division was wrong. */
+var CS_J_ROWS=[
+  /* ---- Tuesday ---- */
+  {weekday:2,start_time:'08:00',end_time:'10:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B2',room:'1104',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:2,start_time:'10:00',end_time:'11:00',subject_code:'ES26108A',subject_name:'Language-English',session_type:'Theory',batch:'',room:'1102',faculty_initials:'SP',faculty_name:'SHRADHHA PHAND',faculty_id:'Visiting_01'},
+  {weekday:2,start_time:'11:00',end_time:'12:00',subject_code:'ES26105',subject_name:'Basics of Engineering',session_type:'Theory',batch:'',room:'1102',faculty_initials:'HYK',faculty_name:'MS. HARSHADA YOGESH KOLEKAR',faculty_id:'20391'},
+  {weekday:2,start_time:'12:00',end_time:'13:00',subject_code:'ES26107',subject_name:'Indian Knowledge System',session_type:'Theory',batch:'',room:'1102',faculty_initials:'VSN',faculty_name:'MR. VIVEK SHRIPAD NAGNATH',faculty_id:'20856'},
+  /* ---- Wednesday ---- */
+  {weekday:3,start_time:'08:00',end_time:'10:00',subject_code:'ES26105',subject_name:'Basics of Engineering',session_type:'Lab',batch:'B1',room:'1220D',faculty_initials:'HYK',faculty_name:'MS. HARSHADA YOGESH KOLEKAR',faculty_id:'20391'},
+  {weekday:3,start_time:'08:00',end_time:'10:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B2',room:'1104',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:3,start_time:'10:00',end_time:'11:00',subject_code:'ES26105',subject_name:'Basics of Engineering',session_type:'Theory',batch:'',room:'1107',faculty_initials:'HYK',faculty_name:'MS. HARSHADA YOGESH KOLEKAR',faculty_id:'20391'},
+  {weekday:3,start_time:'11:00',end_time:'12:00',subject_code:'ES26109',subject_name:'Student Activity',session_type:'Theory',batch:'',room:'1107',faculty_initials:'SHB',faculty_name:'SMITA HANMANT BHAGWAT',faculty_id:'20231'},
+  {weekday:3,start_time:'13:00',end_time:'14:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Theory',batch:'',room:'1002',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'},
+  {weekday:3,start_time:'14:00',end_time:'16:00',subject_code:'ES26105',subject_name:'Basics of Engineering',session_type:'Lab',batch:'B3',room:'1202',faculty_initials:'HYK',faculty_name:'MS. HARSHADA YOGESH KOLEKAR',faculty_id:'20391'},
+  /* ---- Thursday ---- */
+  {weekday:4,start_time:'08:00',end_time:'10:00',subject_code:'ES26105',subject_name:'Basics of Engineering',session_type:'Lab',batch:'B2',room:'1220-A',faculty_initials:'SVP',faculty_name:'MRS. SUVARNA VIJAY PATIL',faculty_id:'10911'},
+  {weekday:4,start_time:'08:00',end_time:'10:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B3',room:'1003',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:4,start_time:'10:00',end_time:'12:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B1',room:'1104',faculty_initials:'VKI',faculty_name:'MR. VIJAY KRISHNA ITNAL',faculty_id:'10616'},
+  {weekday:4,start_time:'10:00',end_time:'11:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Tutorial',batch:'B2',room:'1115',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'},
+  {weekday:4,start_time:'11:00',end_time:'12:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Tutorial',batch:'B3',room:'1115',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'},
+  {weekday:4,start_time:'12:00',end_time:'13:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Theory',batch:'',room:'1103',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:4,start_time:'13:00',end_time:'14:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Theory',batch:'',room:'1103',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'},
+  {weekday:4,start_time:'14:00',end_time:'15:00',subject_code:'ES26106',subject_name:'Universal Human Values',session_type:'Theory',batch:'',room:'1103',faculty_initials:'VRD',faculty_name:'MR. VISHWESH RAGHUNATH DESHMUKH',faculty_id:'20228'},
+  /* ---- Friday ---- */
+  {weekday:5,start_time:'08:00',end_time:'10:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B3',room:'1104',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:5,start_time:'09:00',end_time:'10:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Tutorial',batch:'B1',room:'1409',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'},
+  {weekday:5,start_time:'10:00',end_time:'11:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Theory',batch:'',room:'1102',faculty_initials:'SVD',faculty_name:'SHWETA VIJAYRAO DEOTARE',faculty_id:'12363'},
+  {weekday:5,start_time:'11:00',end_time:'12:00',subject_code:'ES26108A',subject_name:'Language-English',session_type:'Theory',batch:'',room:'1102',faculty_initials:'SP',faculty_name:'SHRADHHA PHAND',faculty_id:'Visiting_01'},
+  {weekday:5,start_time:'13:00',end_time:'14:00',subject_code:'ES26109',subject_name:'Student Activity',session_type:'Theory',batch:'',room:'1109',faculty_initials:'SHB',faculty_name:'SMITA HANMANT BHAGWAT',faculty_id:'20231'},
+  {weekday:5,start_time:'14:00',end_time:'16:00',subject_code:'ES26103',subject_name:'Logic and Quantitative Aptitude 1',session_type:'Theory',batch:'',room:'1125',faculty_initials:'vss',faculty_name:'V4_COMP S S',faculty_id:'2025_264'},
+  /* ---- Saturday ---- */
+  {weekday:6,start_time:'10:00',end_time:'12:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B1',room:'1223',faculty_initials:'VKI',faculty_name:'MR. VIJAY KRISHNA ITNAL',faculty_id:'10616'},
+  {weekday:6,start_time:'12:00',end_time:'13:00',subject_code:'ES26106',subject_name:'Universal Human Values',session_type:'Theory',batch:'',room:'1102',faculty_initials:'VRD',faculty_name:'MR. VISHWESH RAGHUNATH DESHMUKH',faculty_id:'20228'},
+  {weekday:6,start_time:'13:00',end_time:'14:00',subject_code:'ES26101',subject_name:'Linear Algebra',session_type:'Theory',batch:'',room:'1102',faculty_initials:'ARW',faculty_name:'ABHISHEK RAMESH WABLE',faculty_id:'12024'}
+];
+
+/* ME-F: hand-entered from the official EduPlusCampus PDF (Division: FY ME-F,
+   W.E.F 15-Sep-2026 to 10-Jan-2027) because the live Supabase data for this one
+   division was wrong/missing. Every other ME division still loads live as normal.
+   Transcription checked against the PDF's own footer totals: Theory=16, Lab=18,
+   Tutorial=3, Total=37 hours/week — all four match exactly. */
+var ME_F_ROWS=[
+  /* ---- Monday ---- */
+  {weekday:1,start_time:'10:00',end_time:'11:00',subject_code:'ES26205',subject_name:'Engineering Robotics',session_type:'Theory',batch:'',room:'E305',faculty_initials:'RSB',faculty_name:'',faculty_id:''},
+  {weekday:1,start_time:'12:00',end_time:'14:00',subject_code:'ES26205',subject_name:'Engineering Robotics',session_type:'Lab',batch:'B1',room:'E301',faculty_initials:'RSB',faculty_name:'',faculty_id:''},
+  {weekday:1,start_time:'12:00',end_time:'14:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B2',room:'D106',faculty_initials:'AFD',faculty_name:'',faculty_id:''},
+  {weekday:1,start_time:'12:00',end_time:'13:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Tutorial',batch:'B3',room:'D115',faculty_initials:'ABR',faculty_name:'',faculty_id:''},
+  {weekday:1,start_time:'14:00',end_time:'15:00',subject_code:'ES26207',subject_name:'Design Thinking & Ideation',session_type:'Theory',batch:'',room:'E310',faculty_initials:'ARD',faculty_name:'',faculty_id:''},
+  {weekday:1,start_time:'15:00',end_time:'16:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Theory',batch:'',room:'E310',faculty_initials:'ABR',faculty_name:'',faculty_id:''},
+  /* ---- Tuesday ---- */
+  {weekday:2,start_time:'08:00',end_time:'09:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Theory',batch:'',room:'E303',faculty_initials:'JSK',faculty_name:'',faculty_id:''},
+  {weekday:2,start_time:'09:00',end_time:'10:00',subject_code:'ES26206',subject_name:'Environment Studies',session_type:'Theory',batch:'',room:'E303',faculty_initials:'SLG',faculty_name:'',faculty_id:''},
+  {weekday:2,start_time:'10:00',end_time:'11:00',subject_code:'ES26205',subject_name:'Engineering Robotics',session_type:'Theory',batch:'',room:'E303',faculty_initials:'RSB',faculty_name:'',faculty_id:''},
+  {weekday:2,start_time:'12:00',end_time:'14:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B1',room:'E112',faculty_initials:'AFD',faculty_name:'',faculty_id:''},
+  {weekday:2,start_time:'12:00',end_time:'14:00',subject_code:'ES26205',subject_name:'Engineering Robotics',session_type:'Lab',batch:'B2',room:'E302',faculty_initials:'RSB',faculty_name:'',faculty_id:''},
+  {weekday:2,start_time:'12:00',end_time:'14:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B3',room:'E111',faculty_initials:'vbb',faculty_name:'',faculty_id:''},
+  /* ---- Wednesday ---- */
+  {weekday:3,start_time:'08:00',end_time:'10:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B1',room:'E111',faculty_initials:'AFD',faculty_name:'',faculty_id:''},
+  {weekday:3,start_time:'08:00',end_time:'10:00',subject_code:'ES26205',subject_name:'Engineering Robotics',session_type:'Lab',batch:'B3',room:'E301',faculty_initials:'RSB',faculty_name:'',faculty_id:''},
+  {weekday:3,start_time:'10:00',end_time:'11:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Theory',batch:'',room:'E312',faculty_initials:'JSK',faculty_name:'',faculty_id:''},
+  {weekday:3,start_time:'12:00',end_time:'13:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Theory',batch:'',room:'E304',faculty_initials:'ABR',faculty_name:'',faculty_id:''},
+  {weekday:3,start_time:'13:00',end_time:'14:00',subject_code:'ES26206',subject_name:'Environment Studies',session_type:'Theory',batch:'',room:'E304',faculty_initials:'SLG',faculty_name:'',faculty_id:''},
+  {weekday:3,start_time:'14:00',end_time:'15:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Tutorial',batch:'B2',room:'D115',faculty_initials:'ABR',faculty_name:'',faculty_id:''},
+  /* ---- Thursday ---- */
+  {weekday:4,start_time:'10:00',end_time:'11:00',subject_code:'ES26108A',subject_name:'Language-English',session_type:'Theory',batch:'',room:'E303',faculty_initials:'IS',faculty_name:'',faculty_id:''},
+  {weekday:4,start_time:'11:00',end_time:'13:00',subject_code:'ES26103',subject_name:'Logic and Quantitative Aptitude 1',session_type:'Theory',batch:'',room:'E303',faculty_initials:'NbK',faculty_name:'',faculty_id:''},
+  {weekday:4,start_time:'14:00',end_time:'16:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B2',room:'E402',faculty_initials:'AFD',faculty_name:'',faculty_id:''},
+  {weekday:4,start_time:'14:00',end_time:'16:00',subject_code:'ES26104',subject_name:'Programming for Engineers',session_type:'Lab',batch:'B3',room:'E112',faculty_initials:'vbb',faculty_name:'',faculty_id:''},
+  {weekday:4,start_time:'15:00',end_time:'16:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Tutorial',batch:'B1',room:'D115',faculty_initials:'ABR',faculty_name:'',faculty_id:''},
+  /* ---- Friday ---- */
+  {weekday:5,start_time:'08:00',end_time:'09:00',subject_code:'ES26108A',subject_name:'Language-English',session_type:'Theory',batch:'',room:'E305',faculty_initials:'IS',faculty_name:'',faculty_id:''},
+  {weekday:5,start_time:'09:00',end_time:'10:00',subject_code:'ES26206',subject_name:'Environment Studies',session_type:'Theory',batch:'',room:'E305',faculty_initials:'SLG',faculty_name:'',faculty_id:''},
+  {weekday:5,start_time:'11:00',end_time:'12:00',subject_code:'ES26207',subject_name:'Design Thinking & Ideation',session_type:'Theory',batch:'',room:'E310',faculty_initials:'ARD',faculty_name:'',faculty_id:''},
+  {weekday:5,start_time:'12:00',end_time:'13:00',subject_code:'ES26201',subject_name:'Calculus',session_type:'Theory',batch:'',room:'E310',faculty_initials:'ABR',faculty_name:'',faculty_id:''}
+];
+function staticMEF(){
+  var meta={
+    slug:'me-f-static',title:'F',pdf:'ME-F',version:'V1',academicYear:'2026-27',
+    effFrom:'2026-09-15',effTo:'2027-01-10',sess:null,fac:null,days:null,loaded:false
+  };
+  var sess=[],fac={},daySet={};
+  ME_F_ROWS.forEach(function(r,i){
+    getSubj(r.subject_code,r.subject_name);
+    sess.push({id:i,d:r.weekday,s:toMin(r.start_time),e:toMin(r.end_time),sub:r.subject_code,
+      type:r.session_type,b:r.batch||undefined,fac:r.faculty_initials,room:r.room});
+    daySet[r.weekday]=true;
+    if(r.faculty_name && !fac[r.faculty_initials]){
+      var hn=humanName(r.faculty_name);
+      fac[r.faculty_initials]={name:hn.name,id:r.faculty_id||'',title:hn.title};
+    }
+  });
+  meta.sess=sess;meta.fac=fac;
+  meta.days=Object.keys(daySet).map(Number).sort(function(a,b){return a-b});
+  meta.loaded=true;
+  return meta;
+}
+
+/* CLASSES mixes two sources: CS/J is the static, hand-corrected data above (loaded
+   immediately, no network needed); ME (Mechanical) is restored exactly as the site
+   originally had it, fetched live from tt_divisions/tt_sessions like every other
+   branch used to be before the CS/J-only restriction — except division F, whose
+   live data was wrong/missing, so it's swapped for the static ME_F_ROWS above. */
+function staticCSJ(){
+  var meta={
+    slug:'cs-j-static',title:'CS-J',pdf:'CS-J',version:'V1',academicYear:'2026-27',
+    effFrom:'2026-09-15',effTo:'2027-01-10',sess:null,fac:null,days:null,loaded:false
+  };
+  var sess=[],fac={},daySet={};
+  CS_J_ROWS.forEach(function(r,i){
+    getSubj(r.subject_code,r.subject_name);
+    sess.push({id:i,d:r.weekday,s:toMin(r.start_time),e:toMin(r.end_time),sub:r.subject_code,
+      type:r.session_type,b:r.batch||undefined,fac:r.faculty_initials,room:r.room});
+    daySet[r.weekday]=true;
+    if(r.faculty_name && !fac[r.faculty_initials]){
+      var hn=humanName(r.faculty_name);
+      fac[r.faculty_initials]={name:hn.name,id:r.faculty_id||'',title:hn.title};
+    }
+  });
+  meta.sess=sess;meta.fac=fac;
+  meta.days=Object.keys(daySet).map(Number).sort(function(a,b){return a-b});
+  meta.loaded=true;
+  return meta;
+}
 var CLASSES={};
 function loadDivisions(){
-  return fetchSupa('tt_divisions?select=slug,branch,division,pdf_label,version,academic_year,effective_from,effective_to&order=branch.asc,division.asc')
+  return fetchSupa('tt_divisions?select=slug,branch,division,pdf_label,version,academic_year,effective_from,effective_to&branch=eq.ME&order=division.asc')
     .then(function(rows){
       var byBranch={};
       rows.forEach(function(r){
@@ -854,7 +966,19 @@ function loadDivisions(){
           effFrom:r.effective_from,effTo:r.effective_to,sess:null,fac:null,days:null,loaded:false
         };
       });
+      // Division F's live data is wrong/missing — always use the hand-entered static version instead.
+      if(!byBranch.ME) byBranch.ME={label:branchLabel('ME'),code:'ME',divs:{}};
+      byBranch.ME.divs.F=staticMEF();
+      byBranch.CS={label:branchLabel('CS'),code:'CS',divs:{J:staticCSJ()}};
       CLASSES=byBranch;
+    })
+    .catch(function(e){
+      console.error(e);
+      // Mechanical failed to load (offline, etc.) — still give ME/F (static) and CS/J, neither needs network.
+      CLASSES={
+        ME:{label:branchLabel('ME'),code:'ME',divs:{F:staticMEF()}},
+        CS:{label:branchLabel('CS'),code:'CS',divs:{J:staticCSJ()}}
+      };
     });
 }
 function loadDivisionData(meta){
@@ -1416,7 +1540,8 @@ function showPickerStatus(msg){
   f.style.display=msg?'none':'';
 }
 function openPicker(cancelable){
-  pk.branch=CUR?st.branch:'';pk.div=CUR?st.div:'';pk.batch=CUR?st.batch:rawBatch;
+  var onlyBranch=Object.keys(CLASSES).length===1?Object.keys(CLASSES)[0]:'';
+  pk.branch=CUR?st.branch:onlyBranch;pk.div=CUR?st.div:'';pk.batch=CUR?st.batch:rawBatch;
   fixDiv();
   showPickerStatus('');
   $('#pkCancel').hidden=!cancelable;
